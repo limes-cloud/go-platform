@@ -19,3 +19,6 @@
 [submodule "cron"]
 	path = cron
 	url = https://github.com/limes-cloud/cron.git
+[submodule "admin-platform-web"]
+	path = admin-platform-web
+	url = https://github.com/limes-cloud/admin-platform-web.git
