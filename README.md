@@ -29,7 +29,7 @@
 #### 技术选型
 ##### 开发框架
 - 前端：使用字节 [Arco中后台最佳实践框架](https://arco.design/vue/docs/theme)进行开发
-- 后端：使用B站 [Kratos一套轻量级 Go 微服务框架](https://arco.design/vue/docs/theme)进行开发
+- 后端：使用B站 [Kratos一套轻量级 Go 微服务框架](https://github.com/go-kratos/kratos)进行开发
 - 缓存：redis
 - 数据库：mysql
 
