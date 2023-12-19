@@ -1,0 +1,18 @@
+[submodule "manager"]
+	path = manager
+	url = https://github.com/limes-cloud/manager.git
+[submodule "resource"]
+	path = resource
+	url = https://github.com/limes-cloud/resource.git
+[submodule "gateway"]
+	path = gateway
+	url = https://github.com/limes-cloud/gateway.git
+[submodule "configure"]
+	path = configure
+	url = https://github.com/limes-cloud/configure.git
+[submodule "kratosx"]
+	path = kratosx
+	url = https://github.com/limes-cloud/kratosx.git
+[submodule "kratos-layout"]
+	path = kratos-layout
+	url = https://github.com/limes-cloud/kratos-layout.git
