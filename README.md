@@ -1,4 +1,12 @@
 
+#### 预览地址
+- 账号：1280291001@qq.com
+
+- 密码：123456
+
+- 地址：[立即进入](http://admin.qlime.cn)
+
+
 #### 文档地址
 [GoPlatform 文档](https://www.yuque.com/helloworld-ioafi/blvuyc/uow9xkke8kbkavla)
 #### 项目背景
