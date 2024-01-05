@@ -17,7 +17,7 @@
 
 
 ### 文档地址
-[Go-Platform 文档](https://www.yuque.com/helloworld-ioafi/blvuyc/uow9xkke8kbkavla)
+[Go-Platform 文档](https://www.yuque.com/limes-cloud/blvuyc)
 
 ### 项目背景
 市面上的后台快速开发框架，例如若依等admin框架，通常只提供了后台管理端的开发支持，而缺乏对客户端（C端）业务的完善支持。在实际应用中，我们面临着一系列问题。
