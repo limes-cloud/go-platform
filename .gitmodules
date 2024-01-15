@@ -22,3 +22,12 @@
 [submodule "admin-web"]
 	path = admin-web
 	url = https://github.com/limes-cloud/admin-web.git
+[submodule "user-center"]
+	path = user-center
+	url = https://github.com/limes-cloud/user-center.git
+[submodule "party-affairs"]
+	path = party-affairs
+	url = https://github.com/limes-cloud/party-affairs.git
+[submodule "client-uniapp"]
+	path = client-uniapp
+	url = https://github.com/limes-cloud/client-uniapp.git
