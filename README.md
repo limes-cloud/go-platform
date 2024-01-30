@@ -13,7 +13,9 @@
 ### 预览地址
 - 账号：1280291001@qq.com
 - 密码：123456
-- 地址：[立即进入](http://admin.qlime.cn)
+- 地址：
+后台 [立即进入](http://admin.qlime.cn)
+用户端[立即进入](http://client.qlime.cn)
 
 
 ### 文档地址
@@ -35,6 +37,7 @@
 ##### 开发框架
 - 前端：使用字节 [Arco中后台最佳实践框架](https://arco.design/vue/docs/theme)进行开发
 - 后端：使用B站 [Kratos一套轻量级 Go 微服务框架](https://github.com/go-kratos/kratos)进行开发
+- 用户端：使用UV-UI [兼容vue3+2、nvue、app、h5、多端小程序的uni-app生态框架](https://www.uvui.cn/components/intro.html) 进行开发
 - 缓存：redis
 - 数据库：mysql
 
