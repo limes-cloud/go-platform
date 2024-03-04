@@ -1,13 +1,13 @@
 <div align=center>
-<img src="https://limes-cloud.oss-cn-beijing.aliyuncs.com/go-platform.png" width=500" height="300" />
+<img src="https://limes-cloud.oss-cn-beijing.aliyuncs.com/go-platform.png" width=500" height="300"  alt=""/>
 </div>
 <div align=center>
-<img src="https://img.shields.io/badge/golang-1.21-blue"/>
-<img src="https://img.shields.io/badge/kratos-2.7.2-red"/>
-<img src="https://img.shields.io/badge/vue-3.3.4-bright"/>
-<img src="https://img.shields.io/badge/arco.design-4.52-orange"/>
-<img src="https://img.shields.io/badge/uni.app-1.25.2-cyan"/>
-<img src="https://img.shields.io/badge/uv.ui-1.19.1-bright"/>
+<img src="https://img.shields.io/badge/golang-1.21-blue" alt=""/>
+<img src="https://img.shields.io/badge/kratos-2.7.2-red" alt=""/>
+<img src="https://img.shields.io/badge/vue-3.3.4-bright" alt=""/>
+<img src="https://img.shields.io/badge/arco.design-4.52-orange" alt=""/>
+<img src="https://img.shields.io/badge/uni.app-1.25.2-cyan" alt=""/>
+<img src="https://img.shields.io/badge/uv.ui-1.19.1-bright" alt=""/>
 </div>
 
 ### 预览地址

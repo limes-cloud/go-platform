@@ -1,0 +1,69 @@
+env: TEST
+server:
+  http:
+    addr: 0.0.0.0:6081
+    timeout: 10s
+    cors:
+      allowCredentials: true
+      allowOrigins: [ "*" ]
+      allowMethods: [ "GET","POST","PUT","DELETE","OPTIONS" ]
+      AllowHeaders: ["Content-Type", "Content-Length", "Authorization"]
+      ExposeHeaders: ["Content-Length", "Access-Control-Allow-Headers"]
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+  grpc:
+    addr: 0.0.0.0:6082
+    timeout: 10s
+log:
+  level: 0 #日志输出等级
+  caller: true
+  output:
+    - stdout # stdout:控制台输出，k8s日志收集
+    - file # file:输出到文件
+  file: #output存在file时此配置才可生效
+    name: ./tmp/runtime/output.log #日志存放地址
+    maxSize: 1 #日志文件最大容量,单位m
+    maxBackup: 5 #日志文件最多保存个数
+    maxAge: 1 #保留就文件的最大天数,单位天
+    compress: false #是否进行压缩归档
+database:
+  system: #数据库实例名称,如有多个数据库可新增
+    enable: true #是否启用数据库
+    drive: mysql #数据库类型
+    autoCreate: true #是否自动创建数据库
+    connect:
+      username: root
+      password: root
+      host: 127.0.0.1
+      port: 3306
+      dbName: configure_hello
+      option: ?charset=utf8mb4&parseTime=True&loc=Local
+    config:
+      transformError:
+        enable: true
+      maxLifetime: 2h #最大生存时间
+      maxOpenConn: 20 #最大连接数量
+      maxIdleConn: 10 #最大空闲数量
+      logLevel: 4 #日志等级
+      slowThreshold: 2s #慢sql阈值
+jwt:
+  secret: limes-cloud-test #密钥
+  expire: 2h #过期时间
+  renewal: 20s #续期时间
+  whitelist: #忽略token校验以及鉴权的白名单 http 方法名:path  grpc GRPC:operation
+    POST:/configure/v1/login: true  # 登录
+    POST:/configure/v1/logout: true  # 登录
+    POST:/configure/v1/token/refresh: true # 刷新
+loader:
+  login: static/cert/login.pem
+business:
+  webui:
+    addr: ":6080"
+  author:
+    adminUser: 1280291001@qq.com
+    adminPassword: xrxy0852
+logging:
+  enable: true
+  whitelist:
+    GET:/configure/v1/list: true  # 登录

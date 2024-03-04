@@ -1,0 +1,70 @@
+version: '3.5'
+services:
+  # 网关中心
+  gateway:
+    environment:
+      - APP_NAME=Gateway
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: limescloud/gateway
+    container_name: gateway
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./tmp:/go/build/tmp
+  # 管理中心
+  manager:
+    environment:
+      - APP_NAME=Manager
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: limescloud/manager
+    container_name: manager
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./tmp:/go/build/tmp
+  # 资源中心
+  resource:
+    environment:
+      - APP_NAME=Resource
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: limescloud/resource
+    container_name: resource
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./tmp:/go/build/tmp
+  # 用户中心
+  usercenter:
+    environment:
+      - APP_NAME=UserCenter
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: limescloud/usercenter
+    container_name: usercenter
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./tmp:/go/build/tmp
+  # web后台
+  adminweb:
+    image: limescloud/adminweb
+    container_name: adminweb
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./tmp:/go/build/tmp
+  # 示例应用后台
+  partyaffairs:
+    environment:
+      - APP_NAME=PartyAffairs
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: limescloud/partyaffairs
+    container_name: partyaffairs
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./tmp:/go/build/tmp
