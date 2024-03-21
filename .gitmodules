@@ -1,0 +1,30 @@
+[submodule "server/manager"]
+	path = server/manager
+	url = https://github.com/limes-cloud/manager
+[submodule "server/user-center"]
+	path = server/user-center
+	url = https://github.com/limes-cloud/user-center
+[submodule "server/gateway"]
+	path = server/gateway
+	url = https://github.com/limes-cloud/gateway
+[submodule "server/party-affairs"]
+	path = server/party-affairs
+	url = https://github.com/limes-cloud/party-affairs
+[submodule "web/client-uniapp"]
+	path = web/client-uniapp
+	url = https://github.com/limes-cloud/client-uniapp
+[submodule "web/admin-web"]
+	path = web/admin-web
+	url = https://github.com/limes-cloud/admin-web
+[submodule "framework/kratosx"]
+	path = framework/kratosx
+	url = https://github.com/limes-cloud/kratosx
+[submodule "framework/kratos-layout"]
+	path = framework/kratos-layout
+	url = https://github.com/limes-cloud/kratos-layout
+[submodule "server/cron"]
+	path = server/cron
+	url = https://github.com/limes-cloud/cron
+[submodule "server/configure"]
+	path = server/configure
+	url = https://github.com/limes-cloud/configure
