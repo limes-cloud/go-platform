@@ -28,3 +28,6 @@
 [submodule "server/configure"]
 	path = server/configure
 	url = https://github.com/limes-cloud/configure
+[submodule "server/resource"]
+	path = server/resource
+	url = https://github.com/limes-cloud/resource
