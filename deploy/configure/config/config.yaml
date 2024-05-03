@@ -1,20 +1,20 @@
-env: TEST
+env: PROD
 server:
   http:
     addr: 0.0.0.0:6081
-    timeout: 10s
+    timeout: 5s
     cors:
       allowCredentials: true
       allowOrigins: [ "*" ]
       allowMethods: [ "GET","POST","PUT","DELETE","OPTIONS" ]
-      AllowHeaders: ["Content-Type", "Content-Length", "Authorization"]
-      ExposeHeaders: ["Content-Length", "Access-Control-Allow-Headers"]
+      AllowHeaders: [ "Content-Type", "Content-Length", "Authorization" ]
+      ExposeHeaders: [ "Content-Length", "Access-Control-Allow-Headers" ]
     marshal:
       emitUnpopulated: true
       useProtoNames: true
   grpc:
     addr: 0.0.0.0:6082
-    timeout: 10s
+    timeout: 5s
 log:
   level: 0 #日志输出等级
   caller: true
@@ -33,13 +33,16 @@ database:
     drive: mysql #数据库类型
     autoCreate: true #是否自动创建数据库
     connect:
-      username: root
-      password: root
+      username: configure
+      password: YccB65xmdtwc3BJG
       host: 127.0.0.1
       port: 3306
-      dbName: configure_hello
+      dbName: configure
       option: ?charset=utf8mb4&parseTime=True&loc=Local
     config:
+      initializer:
+        enable: true
+        path: deploy/data.sql
       transformError:
         enable: true
       maxLifetime: 2h #最大生存时间
@@ -48,22 +51,22 @@ database:
       logLevel: 4 #日志等级
       slowThreshold: 2s #慢sql阈值
 jwt:
-  secret: limes-cloud-test #密钥
+  secret: limes-cloud-prod #密钥
   expire: 2h #过期时间
   renewal: 20s #续期时间
   whitelist: #忽略token校验以及鉴权的白名单 http 方法名:path  grpc GRPC:operation
     POST:/configure/v1/login: true  # 登录
-    POST:/configure/v1/logout: true  # 登录
+    POST:/configure/v1/logout: true  # 推出登录
     POST:/configure/v1/token/refresh: true # 刷新
 loader:
   login: static/cert/login.pem
+logging:
+  enable: true
+  whitelist:
+    GET:/configure/v1/list: true  # 跳过
 business:
   webui:
     addr: ":6080"
   author:
     adminUser: 1280291001@qq.com
     adminPassword: xrxy0852
-logging:
-  enable: true
-  whitelist:
-    GET:/configure/v1/list: true  # 登录
