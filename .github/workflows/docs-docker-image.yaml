@@ -42,7 +42,7 @@ jobs:  # workflow中的job
           script: | # 重启更新镜像
             docker stop docs
             docker rm docs
-            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/docs:latest
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
             # docker login -u 你的github名称 -p 你的github token https://ghcr.io 
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/docs
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
             docker run -d -p 9090:80 --network host --restart=always --name docs ${{ secrets.DOCKERHUB_USERNAME }}/docs
