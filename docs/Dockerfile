@@ -16,4 +16,4 @@ RUN rm /etc/nginx/conf.d/default.conf
 # 增加自定义nginx.conf文件到对应目录
 ADD nginx.conf /etc/nginx/conf.d/
 # 将dist目录下的文件复制到nginx内的目录下，与上文对应
-COPY --from=builder /app/dist/ /web/basic/
+COPY --from=builder /app/.vitepress/dist/ /web/basic/
