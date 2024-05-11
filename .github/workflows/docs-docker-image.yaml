@@ -45,4 +45,4 @@ jobs:  # workflow中的job
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
             # docker login -u 你的github名称 -p 你的github token https://ghcr.io 
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
-            docker run -d -p 9090:80 --network host --restart=always --name docs ${{ secrets.DOCKERHUB_USERNAME }}/docs
+            docker run -d -p 9090:80 --network host --restart=always --name docs ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
