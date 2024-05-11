@@ -1,0 +1,48 @@
+name: Publish Docker Image   # workflow名称，可以在Github项目主页的【Actions】中看到所有的workflow
+# 触发规则
+on:
+  push:
+    branches:   [ 'main' ]
+
+jobs:  # workflow中的job
+  push_to_registry:  # job的名字
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest   # job运行的基础环境
+
+    steps:  # 一个job由一个或多个step组成
+      - name: Check out the repo
+        uses: actions/checkout@v2   # 官方的action，获取代码
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1  # 三方的action操作， 执行docker login
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}  # 配置dockerhub的认证，在Github项目主页 【Settings】 -> 【Secrets】 添加对应变量
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3  # 抽取项目信息，主要是镜像的tag
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/docs
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2 # docker build & push
+        with:
+          context: docs/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Deploy Docker
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_HOST }} # 服务器ip地址 ; 需要去仓库的 settings/secrets/actions 去创建
+          username: ${{ secrets.SERVER_USER }} # 服务器用户名称；需要去仓库的 settings/secrets/actions 去创建
+          password: ${{ secrets.SERVER_PWD }} # 服务器密码；需要去仓库的 settings/secrets/actions 去创建
+          port: ${{ secrets.SERVER_PORT }} # 服务器端口，默认22；需要去仓库的 settings/secrets/actions 去创建
+          script: | # 重启更新镜像
+            docker stop docs
+            docker rm docs
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/docs:latest
+            # docker login -u 你的github名称 -p 你的github token https://ghcr.io 
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/docs
+            docker run -d -p 9090:80 --network host --restart=always --name docs ${{ secrets.DOCKERHUB_USERNAME }}/docs
