@@ -1,9 +1,6 @@
 [submodule "server/manager"]
 	path = server/manager
 	url = https://github.com/limes-cloud/manager
-[submodule "server/user-center"]
-	path = server/user-center
-	url = https://github.com/limes-cloud/user-center
 [submodule "server/gateway"]
 	path = server/gateway
 	url = https://github.com/limes-cloud/gateway
@@ -31,3 +28,6 @@
 [submodule "server/resource"]
 	path = server/resource
 	url = https://github.com/limes-cloud/resource
+[submodule "server/usercenter"]
+	path = server/usercenter
+	url = https://github.com/limes-cloud/usercenter.git
