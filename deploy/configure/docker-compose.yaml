@@ -1,10 +1,10 @@
 version: '3.5'
 services:
   configure:
-    image: limescloud/configure
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/configure
     container_name: configure
     restart: always
     network_mode: host
     volumes:
       - ./tmp:/go/build/tmp
-      - ./config:/go/build/internal/config
+      - ./conf:/go/build/internal/conf

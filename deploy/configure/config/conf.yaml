@@ -1,7 +1,8 @@
 env: PROD
 server:
   http:
-    addr: 0.0.0.0:6081
+    host: 0.0.0.0
+    port: 6081
     timeout: 5s
     cors:
       allowCredentials: true
@@ -13,7 +14,8 @@ server:
       emitUnpopulated: true
       useProtoNames: true
   grpc:
-    addr: 0.0.0.0:6082
+    host: 0.0.0.0
+    port: 6082
     timeout: 5s
 log:
   level: 0 #日志输出等级
@@ -50,23 +52,22 @@ database:
       maxIdleConn: 10 #最大空闲数量
       logLevel: 4 #日志等级
       slowThreshold: 2s #慢sql阈值
-jwt:
-  secret: limes-cloud-prod #密钥
-  expire: 2h #过期时间
-  renewal: 20s #续期时间
-  whitelist: #忽略token校验以及鉴权的白名单 http 方法名:path  grpc GRPC:operation
-    POST:/configure/v1/login: true  # 登录
-    POST:/configure/v1/logout: true  # 推出登录
-    POST:/configure/v1/token/refresh: true # 刷新
 loader:
   login: static/cert/login.pem
 logging:
   enable: true
   whitelist:
-    GET:/configure/v1/list: true  # 跳过
+    GET:/configure/api/v1/*: true  # 跳过
+jwt:
+  secret: limes-cloud-prod
+  expire: 2h
+  renewal: 600s
+  whitelist:
+    POST:/configure/api/v1/login: true
+    POST:/configure/api/v1/token/refresh: true
 business:
   webui:
     addr: ":6080"
   author:
     adminUser: 1280291001@qq.com
-    adminPassword: xrxy0852
+    adminPassword: xrxy0852!!!

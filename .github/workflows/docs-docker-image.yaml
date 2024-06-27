@@ -32,17 +32,3 @@ jobs:  # workflow中的job
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Deploy Docker
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SERVER_HOST }} # 服务器ip地址 ; 需要去仓库的 settings/secrets/actions 去创建
-          username: ${{ secrets.SERVER_USER }} # 服务器用户名称；需要去仓库的 settings/secrets/actions 去创建
-          password: ${{ secrets.SERVER_PWD }} # 服务器密码；需要去仓库的 settings/secrets/actions 去创建
-          port: ${{ secrets.SERVER_PORT }} # 服务器端口，默认22；需要去仓库的 settings/secrets/actions 去创建
-          script: | # 重启更新镜像
-            docker stop docs
-            docker rm docs
-            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
-            # docker login -u 你的github名称 -p 你的github token https://ghcr.io 
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/docs:main
-            docker run -d -p 9090:80 --restart=always --name docs ${{ secrets.DOCKERHUB_USERNAME }}/docs:main

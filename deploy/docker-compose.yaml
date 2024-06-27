@@ -6,7 +6,7 @@ services:
       - APP_NAME=Gateway
       - CONF_HOST=${CONF_HOST}
       - CONF_TOKEN=${CONF_TOKEN}
-    image: limescloud/gateway
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/gateway
     container_name: gateway
     network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
     restart: always
@@ -18,7 +18,7 @@ services:
       - APP_NAME=Manager
       - CONF_HOST=${CONF_HOST}
       - CONF_TOKEN=${CONF_TOKEN}
-    image: limescloud/manager
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/manager
     container_name: manager
     network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
     restart: always
@@ -31,7 +31,7 @@ services:
       - APP_NAME=Resource
       - CONF_HOST=${CONF_HOST}
       - CONF_TOKEN=${CONF_TOKEN}
-    image: limescloud/resource
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/resource
     container_name: resource
     network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
     restart: always
@@ -43,7 +43,7 @@ services:
       - APP_NAME=UserCenter
       - CONF_HOST=${CONF_HOST}
       - CONF_TOKEN=${CONF_TOKEN}
-    image: limescloud/usercenter
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/usercenter
     container_name: usercenter
     network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
     restart: always
@@ -52,20 +52,8 @@ services:
       - ./usercenter/static:/go/build/static
   # web后台
   adminweb:
-    image: limescloud/adminweb
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/adminweb
     container_name: adminweb
     restart: always
     ports:
       - 7000:80
-  # 示例应用后台
-  partyaffairs:
-    environment:
-      - APP_NAME=PartyAffairs
-      - CONF_HOST=${CONF_HOST}
-      - CONF_TOKEN=${CONF_TOKEN}
-    image: limescloud/partyaffairs
-    container_name: partyaffairs
-    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
-    restart: always
-    volumes:
-      - ./partyaffairs/tmp:/go/build/tmp
