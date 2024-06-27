@@ -53,7 +53,8 @@ kratosx 支持service定义和message定义分离。
 kratosx proto client api/helloworld/v1/demo.proto
 ```
 
-## todo
-- 生成proto 文件分离
-- 自动生成service
-- 一键生成curd
+## 生成后端一键 CURD 代码
+kratosx 支持生成一键curd代码生成，具体代码说明参考layout项目中autocode/dictionary.json
+```shell
+kratosx autocode autocode/dictionary.json
+```

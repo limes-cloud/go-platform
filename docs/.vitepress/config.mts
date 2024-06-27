@@ -20,22 +20,31 @@ export default defineConfig({
       {
         text: '后端',
         items: [
-          { text: '开始手册', link: '/backend/kratosx/start.md' },
-          { text: 'Kratosx 脚手架', link: '/item-2' },
+          { text: '安装手册', link: '/backend/start/start.md' },
+          { text: 'Kratosx组件', link: '/backend/kratosx/components.md' },
           { text: 'Configure 配置中心', link: '/item-3' }
         ]
       },
     ],
-
     sidebar: {
+      '/backend/start': [
+        {
+          text: '安装手册',
+          items: [
+            { text: '认识微服务', link: '/backend/start/start.md' },
+            { text: 'protobuf安装', link: '/backend/start/protobuf-install.md' },
+            { text: 'kratosx-cli安装', link: '/backend/start/kratosx-install.md' },
+          ]
+        }
+      ],
       '/backend/kratosx/': [
         {
-          text: '开始手册',
+          text: 'kratosx组件',
           items: [
-            { text: '认识微服务', link: '/backend/kratosx/start.md' },
-            { text: 'protobuf安装', link: '/backend/kratosx/protobuf-install.md' },
-            { text: 'kratosx 安装', link: '/backend/kratosx/kratosx-install.md' },
-            { text: 'kratosx 组件', link: '/backend/kratosx/components.md' },
+            { text: '启动服务', link: '/backend/kratosx/start.md' },
+            { text: 'context', link: '/backend/kratosx/context.md' },
+            // { text: 'kratosx-cli安装', link: '/backend/kratosx/kratosx-install.md' },
+            // { text: 'kratosx 组件', link: '/backend/kratosx/components.md' },
           ]
         }
       ],
