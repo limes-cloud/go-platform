@@ -50,6 +50,26 @@ services:
     volumes:
       - ./usercenter/tmp:/go/build/tmp
       - ./usercenter/static:/go/build/static
+  cron:
+    environment:
+      - APP_NAME=Cron
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/cron
+    container_name: cron
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./cron/tmp:/go/build/tmp
+      - ./cron/static:/go/build/static
+  cronclient:
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/cron-client
+    container_name: cronclient
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
+    restart: always
+    volumes:
+      - ./cron/tmp:/go/build/tmp
+      - ./cron/static:/go/build/static
   # web后台
   adminweb:
     image: registry.cn-qingdao.aliyuncs.com/limes-cloud/adminweb
