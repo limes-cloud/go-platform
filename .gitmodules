@@ -4,9 +4,6 @@
 [submodule "server/gateway"]
 	path = server/gateway
 	url = https://github.com/limes-cloud/gateway
-[submodule "server/party-affairs"]
-	path = server/party-affairs
-	url = https://github.com/limes-cloud/party-affairs
 [submodule "web/client-uniapp"]
 	path = web/client-uniapp
 	url = https://github.com/limes-cloud/client-uniapp
@@ -31,3 +28,6 @@
 [submodule "server/usercenter"]
 	path = server/usercenter
 	url = https://github.com/limes-cloud/usercenter.git
+[submodule "examples/server/partyaffairs"]
+	path = examples/server/partyaffairs
+	url = https://github.com/limes-cloud/partyaffairs
