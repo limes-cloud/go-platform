@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "GoPlatform",
+  title: "GoPlatform 企业级快速开发脚手架",
   description: "Go-Platform是一个集成了管理中台、业务中台、客户端的微服务快速开发框架",
   themeConfig: {
     logo: '/my-logo.svg',
@@ -42,8 +42,10 @@ export default defineConfig({
           text: 'kratosx组件',
           items: [
             { text: '启动服务', link: '/backend/kratosx/start.md' },
-            { text: 'context', link: '/backend/kratosx/context.md' },
-            // { text: 'kratosx-cli安装', link: '/backend/kratosx/kratosx-install.md' },
+            { text: 'context 上下文', link: '/backend/kratosx/context.md' },
+            { text: 'config 配置组件', link: '/backend/kratosx/config.md' },
+            { text: 'server 系统配置', link: '/backend/kratosx/server.md' },
+
             // { text: 'kratosx 组件', link: '/backend/kratosx/components.md' },
           ]
         }

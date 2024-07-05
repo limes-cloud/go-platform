@@ -72,8 +72,7 @@ func main() {
 ```
 
 ## 指定配置
-kratosx中的配置是兼容kratos的。我们可以通过kratosx.Config来指定配置初始来源。当然更建议使用配置中心进行统一管理。
-配置中心是Go-Platform中自带的用于统一管理配置的服务，具体可阅读 ，在kratosx中我们可以使用以下方式快速接入配置中心。
+#### 从指定的文件配置中初始化服务
 ```go
 import (
     // 引入配置中心sdk
@@ -82,10 +81,7 @@ import (
 
 func main() {
     app := kratosx.New(
-    	// 使用配置中心初始化
-        kratosx.Config(client.NewFromEnv()),
-        // 当然你也可以使用其他的配置组件
-        // 从指定的文件中加载配置
+        // 从指定的文件中初始化服务
         kratosx.Config(file.NewSource("config/config.yaml")),
         // 注册服务
         kratosx.RegistrarServer(RegisterServer),
@@ -100,5 +96,64 @@ func main() {
     if err := app.Run(); err != nil {
         log.Println("run service fail", err.Error())
     }
+}
+
+
+func RegisterServer(c config.Config, hs *http.Server, gs *grpc.Server) {
+    cfg := &conf.Config{}
+	// 配置监听变更
+    c.ScanWatch("business", func(value config.Value) {
+        if err := value.Scan(cfg); err != nil {
+            log.Error("business 配置变更失败:" + err.Error())
+        } else {    
+			log.Info("business 配置变更成功")
+        }
+    })
+    
+    srv := service.New(cfg)
+    v1.RegisterClientServer(gs, srv)
+}
+
+```
+
+#### 从配置文件中初始化服务
+```go
+import (
+    // 引入配置中心sdk
+	"github.com/limes-cloud/configure/client"
+)
+
+func main() {
+    app := kratosx.New(
+    	// 使用配置中心初始化
+        kratosx.Config(client.NewFromEnv()),
+        // 注册服务
+        kratosx.RegistrarServer(RegisterServer),
+		// 启动之后打印启动信息
+        kratosx.Options(kratos.AfterStart(func(ctx context.Context) error {
+            kt := kratosx.MustContext(ctx)
+            pt.ArtFont(fmt.Sprintf("Hello %s !", kt.Name()))
+            return nil
+        })),
+    )   
+
+    if err := app.Run(); err != nil {
+        log.Println("run service fail", err.Error())
+    }
+}
+
+func RegisterServer(c config.Config, hs *http.Server, gs *grpc.Server) {
+    cfg := &conf.Config{}
+    // 配置监听变更
+    c.ScanWatch("business", func(value config.Value) {
+        if err := value.Scan(cfg); err != nil {
+            log.Error("business 配置变更失败:" + err.Error())
+        } else {
+            log.Info("business 配置变更成功")
+        }
+    })
+    
+    srv := service.New(cfg)
+    v1.RegisterClientServer(gs, srv)
 }
 ```

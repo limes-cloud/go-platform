@@ -58,3 +58,4 @@ kratosx 支持生成一键curd代码生成，具体代码说明参考layout项�
 ```shell
 kratosx autocode autocode/dictionary.json
 ```
+todo: 支持前端生成、AI生成能力接入

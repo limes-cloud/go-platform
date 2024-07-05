@@ -28,6 +28,3 @@
 [submodule "server/usercenter"]
 	path = server/usercenter
 	url = https://github.com/limes-cloud/usercenter.git
-[submodule "examples/server/partyaffairs"]
-	path = examples/server/partyaffairs
-	url = https://github.com/limes-cloud/partyaffairs
