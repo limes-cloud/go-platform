@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package manager.api.manager.menu.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.menu.v1";
+option java_outer_classname = "MenuV1";
+
+import "validate/validate.proto";
+
+message ListMenuRequest {
+  optional string title = 3;
+}
+
+message ListMenuReply {
+  message Menu {
+    uint32 id = 1;
+    uint32 parentId = 2;
+    string title = 3;
+    string type = 4;
+    optional string keyword = 5;
+    optional string icon = 6;
+    optional string api = 7;
+    optional string method = 8;
+    optional string path = 9;
+    optional string permission = 10;
+    optional string component = 11;
+    optional string redirect = 12;
+    optional int32 weight = 13;
+    optional bool isHidden = 14;
+    optional bool isCache = 15;
+    optional bool isHome = 16;
+    optional bool isAffix = 17;
+    uint32 createdAt = 18;
+    uint32 updatedAt = 19;
+    repeated Menu children = 20;
+  }
+
+  repeated Menu list = 1;
+}
+
+message ListMenuByCurRoleRequest{
+}
+
+message ListMenuByCurRoleReply {
+  message Menu {
+    uint32 id = 1;
+    uint32 parentId = 2;
+    string title = 3;
+    string type = 4;
+    optional string keyword = 5;
+    optional string icon = 6;
+    optional string api = 7;
+    optional string method = 8;
+    optional string path = 9;
+    optional string permission = 10;
+    optional string component = 11;
+    optional string redirect = 12;
+    optional int32 weight = 13;
+    optional bool isHidden = 14;
+    optional bool isCache = 15;
+    optional bool isHome = 16;
+    optional bool isAffix = 17;
+    uint32 createdAt = 18;
+    uint32 updatedAt = 19;
+    repeated Menu children = 20;
+  }
+
+  uint32 total = 1;
+  repeated Menu list = 2;
+}
+
+message CreateMenuRequest {
+  uint32 parentId = 1;
+  string title = 2[(validate.rules).string = {min_len: 1}];
+  string type = 3[(validate.rules).string = {min_len: 1}];
+  optional string keyword = 4;
+  optional string icon = 5;
+  optional string api = 6;
+  optional string method = 7;
+  optional string path = 8;
+  optional string permission = 9;
+  optional string component = 10;
+  optional string redirect = 11;
+  optional int32 weight = 12;
+  optional bool isHidden = 13;
+  optional bool isCache = 14;
+  optional bool isHome = 15;
+  optional bool isAffix = 16;
+}
+
+message CreateMenuReply {
+  uint32 id = 1;
+}
+
+message UpdateMenuRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  uint32 parentId = 2;
+  string title = 3[(validate.rules).string = {min_len: 1}];
+  string type = 4[(validate.rules).string = {min_len: 1}];
+  optional string keyword = 5;
+  optional string icon = 6;
+  optional string api = 7;
+  optional string method = 8;
+  optional string path = 9;
+  optional string permission = 10;
+  optional string component = 11;
+  optional string redirect = 12;
+  optional int32 weight = 13;
+  optional bool isHidden = 14;
+  optional bool isCache = 15;
+  optional bool isHome = 16;
+  optional bool isAffix = 17;
+}
+
+message UpdateMenuReply {
+}
+
+message DeleteMenuRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+}
+
+message DeleteMenuReply {
+}
+

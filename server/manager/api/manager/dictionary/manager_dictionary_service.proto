@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package manager.api.manager.dictionary.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.dictionary.v1";
+option java_outer_classname = "DictionaryV1";
+
+import "api/manager/dictionary/manager_dictionary.proto";
+import "google/api/annotations.proto";
+import "api/manager/dictionary/manager_dictionary_value.proto";
+
+service Dictionary{
+
+  // ListDictionary 获取字典目录列表
+  rpc ListDictionary (ListDictionaryRequest) returns (ListDictionaryReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/dictionaries",
+    };
+  }
+
+  // CreateDictionary 创建字典目录
+  rpc CreateDictionary (CreateDictionaryRequest) returns (CreateDictionaryReply) {
+    option (google.api.http) = {
+      post: "/manager/api/v1/dictionary",
+      body: "*"
+    };
+  }
+
+  // UpdateDictionary 更新字典目录
+  rpc UpdateDictionary (UpdateDictionaryRequest) returns (UpdateDictionaryReply) {
+    option (google.api.http) = {
+      put: "/manager/api/v1/dictionary",
+      body: "*"
+    };
+  }
+
+  // DeleteDictionary 删除字典目录
+  rpc DeleteDictionary (DeleteDictionaryRequest) returns (DeleteDictionaryReply) {
+    option (google.api.http) = {
+      delete: "/manager/api/v1/dictionary",
+    };
+  }
+
+  // GetDictionaryValues 获取指定keys的所有值
+  rpc GetDictionaryValues (GetDictionaryValuesRequest) returns (GetDictionaryValuesReply) {
+    option (google.api.http) = {
+      post: "/manager/api/v1/dictionary/values",
+      body: "*",
+      additional_bindings:{
+        post: "/manager/client/v1/dictionary/values",
+        body: "*",
+      }
+    };
+  }
+
+  // ListDictionaryValue 获取字典值目录列表
+  rpc ListDictionaryValue (ListDictionaryValueRequest) returns (ListDictionaryValueReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/dictionary_values",
+    };
+  }
+
+  // CreateDictionaryValue 创建字典值目录
+  rpc CreateDictionaryValue (CreateDictionaryValueRequest) returns (CreateDictionaryValueReply) {
+    option (google.api.http) = {
+      post: "/manager/api/v1/dictionary_value",
+      body: "*"
+    };
+  }
+
+  // UpdateDictionaryValue 更新字典值目录
+  rpc UpdateDictionaryValue (UpdateDictionaryValueRequest) returns (UpdateDictionaryValueReply) {
+    option (google.api.http) = {
+      put: "/manager/api/v1/dictionary_value",
+      body: "*"
+    };
+  }
+
+  // UpdateDictionaryValueStatus 更新字典值目录状态
+  rpc UpdateDictionaryValueStatus (UpdateDictionaryValueStatusRequest) returns (UpdateDictionaryValueStatusReply) {
+    option (google.api.http) = {
+      put: "/manager/api/v1/dictionary_value/status",
+      body: "*"
+    };
+  }
+
+  // DeleteDictionaryValue 删除字典值目录
+  rpc DeleteDictionaryValue (DeleteDictionaryValueRequest) returns (DeleteDictionaryValueReply) {
+    option (google.api.http) = {
+      delete: "/manager/api/v1/dictionary_value",
+    };
+  }
+
+  // GetDictionary 获取指定的字典目录
+  rpc GetDictionary (GetDictionaryRequest) returns (GetDictionaryReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/dictionary",
+    };
+  }
+
+}

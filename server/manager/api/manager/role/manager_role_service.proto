@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package manager.api.manager.role.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.role.v1";
+option java_outer_classname = "RoleV1";
+
+import "api/manager/role/manager_role.proto";
+import "google/api/annotations.proto";
+
+service Role{
+
+  // GetRoleMenuIds 获取指定角色的菜单id列表
+  rpc GetRoleMenuIds (GetRoleMenuIdsRequest) returns (GetRoleMenuIdsReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/role/menu_ids",
+    };
+  }
+
+  // ListRole 获取角色信息列表
+  rpc ListRole (ListRoleRequest) returns (ListRoleReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/roles",
+    };
+  }
+
+  // CreateRole 创建角色信息
+  rpc CreateRole (CreateRoleRequest) returns (CreateRoleReply) {
+    option (google.api.http) = {
+      post: "/manager/api/v1/role",
+      body: "*"
+    };
+  }
+
+  // UpdateRole 更新角色信息
+  rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleReply) {
+    option (google.api.http) = {
+      put: "/manager/api/v1/role",
+      body: "*"
+    };
+  }
+
+  // UpdateRole 更新角色信息
+  rpc UpdateRoleMenu (UpdateRoleMenuRequest) returns (UpdateRoleMenuReply) {
+    option (google.api.http) = {
+      put: "/manager/api/v1/role/menu",
+      body: "*"
+    };
+  }
+
+  // UpdateRoleStatus 更新角色信息状态
+  rpc UpdateRoleStatus (UpdateRoleStatusRequest) returns (UpdateRoleStatusReply) {
+    option (google.api.http) = {
+      put: "/manager/api/v1/role/status",
+      body: "*"
+    };
+  }
+
+  // DeleteRole 删除角色信息
+  rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
+    option (google.api.http) = {
+      delete: "/manager/api/v1/role",
+    };
+  }
+
+  // GetRole 获取指定的角色信息
+  rpc GetRole (GetRoleRequest) returns (GetRoleReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/role",
+    };
+  }
+
+}

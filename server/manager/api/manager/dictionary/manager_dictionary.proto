@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package manager.api.manager.dictionary.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.dictionary.v1";
+option java_outer_classname = "DictionaryV1";
+
+import "validate/validate.proto";
+
+message ListDictionaryRequest {
+  uint32 page = 1[(validate.rules).uint32 = {gte: 1}];
+  uint32 pageSize = 2[(validate.rules).uint32 = {gte: 1,lte:50}];
+  optional string order = 3[(validate.rules).string = {in: ["asc","desc"]}];
+  optional string orderBy = 4[(validate.rules).string = {in: ["id"]}];
+  optional string keyword = 5;
+  optional string name = 6;
+}
+
+message ListDictionaryReply {
+  message Dictionary {
+    uint32 id = 1;
+    string keyword = 2;
+    string name = 3;
+    optional string description = 4;
+    uint32 createdAt = 5;
+    uint32 updatedAt = 6;
+  }
+
+  uint32 total = 1;
+  repeated Dictionary list = 2;
+}
+
+message CreateDictionaryRequest {
+  string keyword = 1[(validate.rules).string = {min_len: 1}];
+  string name = 2[(validate.rules).string = {min_len: 1}];
+  optional string description = 3;
+}
+
+message CreateDictionaryReply {
+  uint32 id = 1;
+}
+
+message UpdateDictionaryRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  string keyword = 2[(validate.rules).string = {min_len: 1}];
+  string name = 3[(validate.rules).string = {min_len: 1}];
+  optional string description = 4;
+}
+
+message UpdateDictionaryReply {
+}
+
+message DeleteDictionaryRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+}
+
+message DeleteDictionaryReply {
+}
+
+message GetDictionaryRequest {
+  optional uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  optional string keyword = 2[(validate.rules).string = {min_len: 1}];
+}
+
+message GetDictionaryReply {
+  uint32 id = 1;
+  string keyword = 2;
+  string name = 3;
+  optional string description = 4;
+  uint32 createdAt = 5;
+  uint32 updatedAt = 6;
+}
+

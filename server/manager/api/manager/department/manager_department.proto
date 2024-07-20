@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package manager.api.manager.department.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.department.v1";
+option java_outer_classname = "DepartmentV1";
+
+import "validate/validate.proto";
+
+message GetDepartmentRequest {
+  oneof params{
+     uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+     string keyword = 2[(validate.rules).string = {min_len: 1}];
+  }
+}
+
+message GetDepartmentReply {
+  uint32 id = 1;
+  uint32 parentId = 2;
+  string name = 3;
+  string keyword = 4;
+  optional string description = 5;
+  uint32 createdAt = 6;
+  uint32 updatedAt = 7;
+}
+
+message ListDepartmentRequest {
+  optional string name = 3;
+  optional string keyword = 4;
+}
+
+message ListDepartmentReply {
+  message Department {
+    uint32 id = 1;
+    uint32 parentId = 2;
+    string name = 3;
+    string keyword = 4;
+    optional string description = 5;
+    uint32 createdAt = 6;
+    uint32 updatedAt = 7;
+    repeated Department children = 8;
+  }
+
+  repeated Department list = 2;
+}
+
+message CreateDepartmentRequest {
+  uint32 parentId = 1[(validate.rules).uint32 = {gte: 1}];
+  string name = 2[(validate.rules).string = {min_len: 1}];
+  string keyword = 3[(validate.rules).string = {min_len: 1}];
+  optional string description = 4;
+}
+
+message CreateDepartmentReply {
+  uint32 id = 1;
+}
+
+message UpdateDepartmentRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  uint32 parentId = 2[(validate.rules).uint32 = {gte: 1}];
+  string name = 3[(validate.rules).string = {min_len: 1}];
+  optional string description = 4;
+}
+
+message UpdateDepartmentReply {
+}
+
+message DeleteDepartmentRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte:1}];
+}
+
+message DeleteDepartmentReply {
+}
+
+

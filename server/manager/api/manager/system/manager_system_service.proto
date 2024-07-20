@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package manager.api.manager.system.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.system.v1";
+option java_outer_classname = "SystemV1";
+
+import "api/manager/system/manager_system.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+service System{
+
+  // GetSystemSetting 获取系统设置
+  rpc GetSystemSetting (GetSystemSettingRequest) returns (GetSystemSettingReply) {
+    option (google.api.http) = {
+      get: "/manager/api/v1/system/setting",
+    };
+  }
+
+}

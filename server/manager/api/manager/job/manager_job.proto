@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package manager.api.manager.job.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.job.v1";
+option java_outer_classname = "JobV1";
+
+import "validate/validate.proto";
+
+message ListJobRequest {
+  uint32 page = 1[(validate.rules).uint32 = {gte: 1}];
+  uint32 pageSize = 2[(validate.rules).uint32 = {gte: 1,lte:50}];
+  optional string order = 3[(validate.rules).string = {in: ["asc","desc"]}];
+  optional string orderBy = 4[(validate.rules).string = {in: ["id","weight","created_at"]}];
+  optional string keyword = 5;
+  optional string name = 6;
+}
+
+message ListJobReply {
+  message Job {
+    uint32 id = 1;
+    string keyword = 2;
+    string name = 3;
+    optional int32 weight = 4;
+    optional string description = 5;
+    uint32 createdAt = 6;
+    uint32 updatedAt = 7;
+  }
+
+  uint32 total = 1;
+  repeated Job list = 2;
+}
+
+message CreateJobRequest {
+  string keyword = 1[(validate.rules).string = {min_len: 1}];
+  string name = 2[(validate.rules).string = {min_len: 1}];
+  optional int32 weight = 3;
+  optional string description = 4;
+}
+
+message CreateJobReply {
+  uint32 id = 1;
+}
+
+message UpdateJobRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  string keyword = 2[(validate.rules).string = {min_len: 1}];
+  string name = 3[(validate.rules).string = {min_len: 1}];
+  optional int32 weight = 4;
+  optional string description = 5;
+}
+
+message UpdateJobReply {
+}
+
+message DeleteJobRequest {
+   uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+}
+
+message DeleteJobReply {
+}
+
+message GetJobRequest {
+  optional uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  optional string keyword = 2[(validate.rules).string = {min_len: 1}];
+}
+
+message GetJobReply {
+  uint32 id = 1;
+  string keyword = 2;
+  string name = 3;
+  optional int32 weight = 4;
+  optional string description = 5;
+  uint32 createdAt = 6;
+  uint32 updatedAt = 7;
+}
+

@@ -1,0 +1,118 @@
+---
+server:
+  http:
+    addr: 127.0.0.1:7001
+    timeout: 10s
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+#    formatResponse: true
+#    cors:
+#      allowCredentials: true
+#      allowOrigins: [ "*" ]
+#      allowMethods: [ "GET","POST","PUT","DELETE","OPTIONS" ]
+#      AllowHeaders: [ "Content-Type", "Content-Length", "Authorization" ]
+#      ExposeHeaders: [ "Content-Length", "Access-Control-Allow-Headers" ]
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout
+    - file
+  file:
+    name: "./tmp/runtime/output.log"
+    maxSize: 1
+    maxBackup: 5
+    maxAge: 1
+    compress: false
+database:
+  system: #数据库实例名称,如有多个数据库可新增
+    enable: true #是否启用数据库
+    drive: mysql #数据库类型
+    autoCreate: true #是否自动创建数据库
+    connect:
+      username: root
+      password: root
+      host: 127.0.0.1
+      port: 3306
+      dbName: manager_auto
+      option: ?charset=utf8mb4&parseTime=True&loc=Local
+    config:
+      initializer:
+        enable: true
+        path: deploy/data.sql
+      transformError:
+        enable: true
+      maxLifetime: 2h #最大生存时间
+      maxOpenConn: 10 #最大连接数量
+      maxIdleConn: 10 #最大空闲数量
+      logLevel: 4 #日志等级
+      slowThreshold: 2s #慢sql阈值
+redis:
+  cache:
+    enable: true
+    host: 127.0.0.1:6379
+    username: ''
+    password: ''
+captcha:
+  login:
+    type: image
+    length: 6
+    expire: 180s
+    redis: cache
+    height: 80
+    width: 240
+    skew: 0.7
+    dotCount: 80
+    refresh: true
+  changePassword:
+    type: email
+    length: 6
+    expire: 180s
+    redis: cache
+    template: captcha
+client:
+  - server: Resource
+    type: direct
+    backends:
+      - target: 127.0.0.1:8003
+loader:
+  login: static/cert/login.pem
+email:
+  template:
+    captcha:
+      subject: 验证码发送通知
+      path: static/template/email/default.html
+      type: text/html
+  user: 860808187@qq.com
+  name: 青岑云
+  host: smtp.qq.com
+  port: 25
+  password: fyudafdzqmhwbfbd
+jwt:
+  redis: cache
+  secret: limeschool
+  expire: 2h
+  renewal: 600s
+  whitelist:
+    GET:/manager/api/v1/system/setting: true
+    GET:/manager/api/v1/user/login/captcha: true
+    POST:/manager/api/v1/user/login: true
+    POST:/manager/api/v1/user/logout: true
+    POST:/manager/api/v1/user/token/refresh: true
+authentication:
+  db: system
+  redis: cache
+  roleKey: roleKeyword
+  skipRole:
+    - superAdmin
+  whitelist: {}
+business:
+  changePasswordType: password
+  defaultUserPassword: '12345678'
+  setting:
+    title: easy1-admin 后台管理系统
+    desc: 开放协作，拥抱未来，插件化编程实现1
+    copyright: Copyright © 2023 lime.qlime.cn. All rights reserved.
+    logo: http://p3-armor.byteimg.com/tos-cn-i-49unhts6dw/dfdba5317c0c20ce20e64fac803d52bc.svg~tplv-49unhts6dw-image.image
+    watermark: admin-platform

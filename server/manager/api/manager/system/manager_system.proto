@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package manager.api.manager.system.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.system.v1";
+option java_outer_classname = "SystemV1";
+
+import "validate/validate.proto";
+import "google/protobuf/any.proto";
+
+message GetSystemSettingRequest {
+}
+
+
+message DictionaryValue {
+  string label = 1;
+  string value = 2;
+  optional string type = 3;
+  optional string extra = 4;
+}
+
+message GetSystemSettingReply {
+  message DictionaryValueList{
+    repeated DictionaryValue list = 8;
+  }
+  bool debug = 1;
+  string title = 2;
+  string desc = 3;
+  string copyright = 4;
+  string logo = 5;
+  string changePasswordType = 6;
+  string watermark = 7;
+  map<string,DictionaryValueList> dictionaries = 8;
+}

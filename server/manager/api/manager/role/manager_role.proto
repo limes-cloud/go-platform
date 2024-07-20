@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package manager.api.manager.role.v1;
+
+option go_package = "./v1;v1";
+option java_multiple_files = true;
+option java_package = "manager.api.manager.role.v1";
+option java_outer_classname = "RoleV1";
+
+import "validate/validate.proto";
+
+message GetRoleRequest {
+  oneof params{
+    uint32 id = 1[(validate.rules).uint32 = {gt: 1}];
+    string keyword = 2[(validate.rules).string = {min_len: 1}];
+  }
+}
+
+message GetRoleReply {
+  uint32 id = 1;
+  uint32 parentId = 2;
+  string name = 3;
+  string keyword = 4;
+  optional bool status = 5;
+  string dataScope = 6;
+  optional string departmentIds = 7;
+  optional string description = 8;
+  uint32 createdAt = 9;
+  uint32 updatedAt = 10;
+}
+
+message GetRoleMenuIdsRequest{
+  uint32 roleId = 1[(validate.rules).uint32 = {gt: 1}];
+}
+
+message GetRoleMenuIdsReply{
+  repeated uint32 list = 1;
+}
+
+message ListRoleRequest {
+  optional string name = 3;
+  optional string keyword = 4;
+}
+
+message ListRoleReply {
+  message Role {
+    uint32 id = 1;
+    uint32 parentId = 2;
+    string name = 3;
+    string keyword = 4;
+    optional bool status = 5;
+    string dataScope = 6;
+    optional string departmentIds = 7;
+    optional string description = 8;
+    uint32 createdAt = 9;
+    uint32 updatedAt = 10;
+    repeated Role children = 11;
+  }
+
+  repeated Role list = 1;
+}
+
+message CreateRoleRequest {
+  uint32 parentId = 1[(validate.rules).uint32 = {gt: 1}];
+  string name = 2[(validate.rules).string = {min_len: 1}];
+  string keyword = 3[(validate.rules).string = {min_len: 1}];
+  optional bool status = 4;
+  string dataScope = 5[(validate.rules).string = {in: ["ALL","CUR","CUR_DOWN","DOWN","CUSTOM"],min_len: 1}];
+  optional string departmentIds = 6;
+  optional string description = 7;
+}
+
+message CreateRoleReply {
+  uint32 id = 1;
+}
+
+message UpdateRoleRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gt: 1}];
+  uint32 parentId = 2[(validate.rules).uint32 = {gt: 1}];
+  string name = 3[(validate.rules).string = {min_len: 1}];
+  string dataScope = 4[(validate.rules).string = {in: ["ALL","CUR","CUR_DOWN","DOWN","CUSTOM"],min_len: 1}];
+  optional string departmentIds = 5;
+  optional string description = 6;
+}
+
+message UpdateRoleReply {
+}
+
+message UpdateRoleStatusRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gt: 1}];
+  bool status = 2;
+}
+
+message UpdateRoleMenuRequest{
+  uint32 roleId = 1[(validate.rules).uint32 = {gt: 1}];
+  repeated uint32 menuIds = 2[(validate.rules).repeated = {min_items: 1, unique: true}];
+}
+
+message UpdateRoleMenuReply{
+}
+
+message UpdateRoleStatusReply {
+}
+
+message DeleteRoleRequest {
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+}
+
+message DeleteRoleReply {
+}
+
+
+
