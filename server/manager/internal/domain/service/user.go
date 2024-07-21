@@ -35,14 +35,18 @@ type UseService struct {
 	repo repository.UserRepository
 	dept repository.DepartmentRepository
 	role repository.RoleRepository
+	file repository.FileRepository
 }
 
-func NewUseService(config *conf.Config,
+func NewUseService(
+	conf *conf.Config,
 	repo repository.UserRepository,
 	dept repository.DepartmentRepository,
 	role repository.RoleRepository,
+	file repository.FileRepository,
+
 ) *UseService {
-	return &UseService{conf: config, repo: repo, dept: dept, role: role}
+	return &UseService{conf: conf, repo: repo, dept: dept, role: role, file: file}
 }
 
 // GetUser 获取指定的用户信息
@@ -91,6 +95,10 @@ func (u *UseService) GetUser(ctx kratosx.Context, req *types.GetUserRequest) (*e
 		return nil, err
 	}
 
+	if user.Avatar != nil {
+		user.Avatar = proto.String(u.file.GetFileURL(ctx, *user.Avatar))
+	}
+
 	return user, nil
 }
 
@@ -108,6 +116,13 @@ func (u *UseService) ListUser(ctx kratosx.Context, req *types.ListUserRequest) (
 	if err != nil {
 		return nil, 0, errors.ListError(err.Error())
 	}
+
+	for ind, item := range list {
+		if item.Avatar != nil {
+			list[ind].Avatar = proto.String(u.file.GetFileURL(ctx, *item.Avatar))
+		}
+	}
+
 	return list, total, nil
 }
 
@@ -320,16 +335,20 @@ func (u *UseService) ResetUserPassword(ctx kratosx.Context, id uint32) error {
 
 // GetCurrentUser 获取当前的用户信息
 func (u *UseService) GetCurrentUser(ctx kratosx.Context) (*entity.User, error) {
-	res, err := u.repo.GetUser(ctx, md.UserId(ctx))
+	user, err := u.repo.GetUser(ctx, md.UserId(ctx))
 	if err != nil {
 		return nil, errors.GetError(err.Error())
 	}
-	for _, role := range res.Roles {
-		if role.Id == res.RoleId {
-			res.Role = role
+	for _, role := range user.Roles {
+		if role.Id == user.RoleId {
+			user.Role = role
 		}
 	}
-	return res, nil
+
+	if user.Avatar != nil {
+		user.Avatar = proto.String(u.file.GetFileURL(ctx, *user.Avatar))
+	}
+	return user, nil
 }
 
 // UpdateCurrentUser 更新当前的基础信息

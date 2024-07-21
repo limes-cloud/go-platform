@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/limes-cloud/manager/internal/infra/rpcs"
 
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -25,7 +26,7 @@ type UserApp struct {
 
 func NewUserApp(conf *conf.Config) *UserApp {
 	return &UserApp{
-		srv: service.NewUseService(conf, dbs.NewUserInfra(), dbs.NewDepartmentInfra(), dbs.NewRoleRepo()),
+		srv: service.NewUseService(conf, dbs.NewUserInfra(), dbs.NewDepartmentInfra(), dbs.NewRoleRepo(), rpcs.NewFileInfra()),
 	}
 }
 

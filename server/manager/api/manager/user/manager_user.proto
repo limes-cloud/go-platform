@@ -10,7 +10,7 @@ option java_outer_classname = "UserV1";
 import "validate/validate.proto";
 
 message GetUserRequest {
-  optional uint32 id = 1[(validate.rules).uint32 = {gt: 1}];
+  optional uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
   optional string phone = 2[(validate.rules).string = {min_len: 1}];
   optional string email = 3[(validate.rules).string = {min_len: 1}];
 }
@@ -52,8 +52,8 @@ message GetUserReply {
 }
 
 message ListUserRequest {
-  uint32 page = 1[(validate.rules).uint32 = {gt: 1}];
-  uint32 pageSize = 2[(validate.rules).uint32 = {gt: 1,lte:50}];
+  uint32 page = 1[(validate.rules).uint32 = {gte: 1}];
+  uint32 pageSize = 2[(validate.rules).uint32 = {gte: 1,lte:50}];
   optional string order = 3[(validate.rules).string = {in: ["asc","desc"]}];
   optional string orderBy = 4[(validate.rules).string = {in: ["id","logged_at","created_at","updated_at"]}];
   optional uint32 departmentId = 5;
@@ -98,7 +98,7 @@ message ListUserReply { // fixed code
 }
 
 message CreateUserRequest { // fixed code
-  uint32 departmentId = 1[(validate.rules).uint32 = {gt: 1}];
+  uint32 departmentId = 1[(validate.rules).uint32 = {gte: 1}];
   string name = 2[(validate.rules).string = {min_len: 1}];
   string gender = 3[(validate.rules).string = {min_len: 1}];
   string phone = 4[(validate.rules).string = {min_len: 1}];
@@ -112,8 +112,8 @@ message CreateUserReply {
 }
 
 message UpdateUserRequest { // fixed code
-  uint32 id = 1[(validate.rules).uint32 = {gt: 1}];
-  uint32 departmentId = 2[(validate.rules).uint32 = {gt: 1}];
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
+  uint32 departmentId = 2[(validate.rules).uint32 = {gte: 1}];
   string name = 3[(validate.rules).string = {min_len: 1}];
   string gender = 4[(validate.rules).string = {min_len: 1}];
   string phone = 5[(validate.rules).string = {min_len: 1}];
@@ -126,7 +126,7 @@ message UpdateUserReply {
 }
 
 message UpdateUserStatusRequest {
-  uint32 id = 1[(validate.rules).uint32 = {gt: 1}];
+  uint32 id = 1[(validate.rules).uint32 = {gte: 1}];
   bool status = 2;
 }
 

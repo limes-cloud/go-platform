@@ -27,4 +27,4 @@
 	url = https://github.com/limes-cloud/resource
 [submodule "server/usercenter"]
 	path = server/usercenter
-	url = https://github.com/limes-cloud/usercenter.git
+	url = https://github.com/limes-cloud/usercenter

@@ -59,10 +59,10 @@ func (m *GetUserRequest) validate(all bool) error {
 
 	if m.Id != nil {
 
-		if m.GetId() <= 1 {
+		if m.GetId() < 1 {
 			err := GetUserRequestValidationError{
 				field:  "Id",
-				reason: "value must be greater than 1",
+				reason: "value must be greater than or equal to 1",
 			}
 			if !all {
 				return err
@@ -469,10 +469,10 @@ func (m *ListUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetPage() <= 1 {
+	if m.GetPage() < 1 {
 		err := ListUserRequestValidationError{
 			field:  "Page",
-			reason: "value must be greater than 1",
+			reason: "value must be greater than or equal to 1",
 		}
 		if !all {
 			return err
@@ -480,10 +480,10 @@ func (m *ListUserRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if val := m.GetPageSize(); val <= 1 || val > 50 {
+	if val := m.GetPageSize(); val < 1 || val > 50 {
 		err := ListUserRequestValidationError{
 			field:  "PageSize",
-			reason: "value must be inside range (1, 50]",
+			reason: "value must be inside range [1, 50]",
 		}
 		if !all {
 			return err
@@ -793,10 +793,10 @@ func (m *CreateUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetDepartmentId() <= 1 {
+	if m.GetDepartmentId() < 1 {
 		err := CreateUserRequestValidationError{
 			field:  "DepartmentId",
-			reason: "value must be greater than 1",
+			reason: "value must be greater than or equal to 1",
 		}
 		if !all {
 			return err
@@ -1116,10 +1116,10 @@ func (m *UpdateUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetId() <= 1 {
+	if m.GetId() < 1 {
 		err := UpdateUserRequestValidationError{
 			field:  "Id",
-			reason: "value must be greater than 1",
+			reason: "value must be greater than or equal to 1",
 		}
 		if !all {
 			return err
@@ -1127,10 +1127,10 @@ func (m *UpdateUserRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if m.GetDepartmentId() <= 1 {
+	if m.GetDepartmentId() < 1 {
 		err := UpdateUserRequestValidationError{
 			field:  "DepartmentId",
-			reason: "value must be greater than 1",
+			reason: "value must be greater than or equal to 1",
 		}
 		if !all {
 			return err
@@ -1448,10 +1448,10 @@ func (m *UpdateUserStatusRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetId() <= 1 {
+	if m.GetId() < 1 {
 		err := UpdateUserStatusRequestValidationError{
 			field:  "Id",
-			reason: "value must be greater than 1",
+			reason: "value must be greater than or equal to 1",
 		}
 		if !all {
 			return err

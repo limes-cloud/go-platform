@@ -90,7 +90,7 @@ func (r *DictionaryInfra) ListDictionaryValue(ctx kratosx.Context, req *types.Li
 		fs    = []string{"*"}
 	)
 
-	db := ctx.DB().Select(fs)
+	db := ctx.DB().Model(entity.DictionaryValue{}).Select(fs)
 	if req.DictionaryId != nil {
 		db = db.Where("dictionary_id = ?", *req.DictionaryId)
 	}

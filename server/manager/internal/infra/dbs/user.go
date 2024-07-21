@@ -21,7 +21,6 @@ var (
 )
 
 func NewUserInfra() repository.UserRepository {
-	return &UserInfra{}
 	_UserInfraOnce.Do(func() {
 		_UserInfra = &UserInfra{}
 	})
@@ -104,7 +103,7 @@ func (r UserInfra) ListUser(ctx kratosx.Context, req *types.ListUserRequest) ([]
 		req.Order = proto.String("asc")
 	}
 	db = order(db, req.OrderBy, req.Order)
-	return list, uint32(total), nil
+	return list, uint32(total), db.Find(&list).Error
 }
 
 // CreateUser 创建数据
