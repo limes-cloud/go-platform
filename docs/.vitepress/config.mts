@@ -20,6 +20,7 @@ export default defineConfig({
       {
         text: '后端',
         items: [
+          // { text: '设计原则', link: '/backend/design/design.md' },
           { text: '安装手册', link: '/backend/start/start.md' },
           { text: 'Kratosx组件', link: '/backend/kratosx/components.md' },
           { text: 'Configure 配置中心', link: '/item-3' }
@@ -27,13 +28,25 @@ export default defineConfig({
       },
     ],
     sidebar: {
-      '/backend/start': [
+      '/backend/design': [
         {
-          text: '安装手册',
+          text: '设计原则',
           items: [
             { text: '认识微服务', link: '/backend/start/start.md' },
             { text: 'protobuf安装', link: '/backend/start/protobuf-install.md' },
             { text: 'kratosx-cli安装', link: '/backend/start/kratosx-install.md' },
+          ]
+        }
+      ],
+      '/backend/start': [
+        {
+          text: '安装手册',
+          items: [
+            // { text: '认识微服务', link: '/backend/start/start.md' },
+            { text: 'protobuf安装', link: '/backend/start/protobuf-install.md' },
+            { text: 'kratosx-cli安装', link: '/backend/start/kratosx-install.md' },
+            { text: '配置中心', link: '/backend/start/kratosx-install.md' },
+
           ]
         }
       ],

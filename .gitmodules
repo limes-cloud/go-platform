@@ -25,6 +25,6 @@
 [submodule "server/resource"]
 	path = server/resource
 	url = https://github.com/limes-cloud/resource
-[submodule "server/usercenter"]
-	path = server/usercenter
-	url = https://github.com/limes-cloud/usercenter
+[submodule "server/application"]
+	path = server/application
+	url = https://github.com/limes-cloud/application
