@@ -20,33 +20,34 @@ export default defineConfig({
       {
         text: '后端',
         items: [
+          { text: '学习手册', link: '/backend/study/study.md' },
           // { text: '设计原则', link: '/backend/design/design.md' },
-          { text: '安装手册', link: '/backend/start/start.md' },
+          { text: '开始手册', link: '/backend/start/start.md' },
           { text: 'Kratosx组件', link: '/backend/kratosx/components.md' },
           { text: 'Configure 配置中心', link: '/item-3' }
         ]
       },
     ],
     sidebar: {
-      '/backend/design': [
+      '/backend/study': [
         {
-          text: '设计原则',
+          text: '学习手册',
           items: [
-            { text: '认识微服务', link: '/backend/start/start.md' },
-            { text: 'protobuf安装', link: '/backend/start/protobuf-install.md' },
-            { text: 'kratosx-cli安装', link: '/backend/start/kratosx-install.md' },
+            { text: '代码规范', link: '/backend/study/code.md' },
+            { text: '命名风格', link: '/backend/study/designate.md' },
+            { text: '接口设计', link: '/backend/study/api.md' },
+            { text: '架构设计', link: '/backend/study/framework.md' },
           ]
         }
       ],
       '/backend/start': [
         {
-          text: '安装手册',
+          text: '开始手册',
           items: [
-            // { text: '认识微服务', link: '/backend/start/start.md' },
+            { text: '认识微服务', link: '/backend/start/start.md' },
             { text: 'protobuf安装', link: '/backend/start/protobuf-install.md' },
-            { text: 'kratosx-cli安装', link: '/backend/start/kratosx-install.md' },
-            { text: '配置中心', link: '/backend/start/kratosx-install.md' },
-
+            { text: 'cli工具安装', link: '/backend/start/kratosx-install.md' },
+            { text: '项目安装', link: '/backend/start/project-install.md' },
           ]
         }
       ],
