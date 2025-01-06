@@ -28,3 +28,6 @@
 [submodule "server/application"]
 	path = server/application
 	url = https://github.com/limes-cloud/application
+[submodule "server/notify"]
+	path = server/notify
+	url = https://github.com/limes-cloud/notify.git
