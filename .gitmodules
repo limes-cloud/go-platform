@@ -31,3 +31,6 @@
 [submodule "server/notify"]
 	path = server/notify
 	url = https://github.com/limes-cloud/notify.git
+[submodule "server/ai-agent"]
+	path = server/ai-agent
+	url = https://github.com/limes-cloud/ai-agent.git

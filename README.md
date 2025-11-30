@@ -11,11 +11,11 @@
 </div>
 
 ### 预览地址
-- 账号：1280291001@qq.com
-- 密码：12345678
+- 账号：username
+- 密码：xrxy0852
 - 地址：
-管理端 [立即进入](http://admin.qlime.cn)
-用户端 [立即进入](http://client.qlime.cn)
+管理端 [立即进入](http://demo.qlime.cn)
+用户端(还在部署中) [立即进入](http://demo-client.qlime.cn)
 
 
 ### 文档地址
