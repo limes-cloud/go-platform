@@ -1,0 +1,5 @@
+*
+!Dockerfile
+!entrypoint.sh
+!dist
+!assets

@@ -1,0 +1,112 @@
+x-runtime-env: &runtime-env
+  PLATFORM_ENV: ${PLATFORM_ENV:-PROD}
+  PLATFORM_DB_HOST: ${PLATFORM_DB_HOST:-127.0.0.1}
+  PLATFORM_DB_PORT: ${PLATFORM_DB_PORT:-3306}
+  PLATFORM_DB_AUTO_CREATE: ${PLATFORM_DB_AUTO_CREATE:-false}
+  PLATFORM_REDIS_ADDR: ${PLATFORM_REDIS_ADDR:-127.0.0.1:6379}
+  PLATFORM_REDIS_PASSWORD: ${PLATFORM_REDIS_PASSWORD:-}
+  PLATFORM_MANAGER_GRPC: ${PLATFORM_MANAGER_GRPC:-127.0.0.1:8202}
+
+x-common: &common
+  restart: unless-stopped
+  network_mode: host
+  platform: ${PLATFORM_DOCKER_PLATFORM:-linux/amd64}
+  stop_grace_period: 15s
+  logging:
+    driver: json-file
+    options:
+      max-size: 20m
+      max-file: "5"
+
+services:
+  platform-manager:
+    <<: *common
+    image: ${PLATFORM_MANAGER_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/manager:v1.2.10}
+    container_name: platform-manager
+    environment:
+      <<: *runtime-env
+      PLATFORM_MANAGER_HTTP_HOST: ${PLATFORM_MANAGER_HTTP_HOST:-127.0.0.1}
+      PLATFORM_MANAGER_PPROF_ENABLE: ${PLATFORM_MANAGER_PPROF_ENABLE:-false}
+      PLATFORM_MANAGER_PPROF_SECRET: ${PLATFORM_MANAGER_PPROF_SECRET:-}
+      PLATFORM_MANAGER_DB_NAME: ${PLATFORM_MANAGER_DB_NAME:-ns_manager_v2}
+      PLATFORM_MANAGER_DB_USER: ${PLATFORM_MANAGER_DB_USER:-manager}
+      PLATFORM_MANAGER_DB_PASSWORD: ${PLATFORM_MANAGER_DB_PASSWORD}
+    volumes:
+      - ./conf/manager.yaml:/go/build/conf/conf.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 3 -O /dev/null http://127.0.0.1:7202/manager/api/system/setting"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  platform-configure:
+    <<: *common
+    image: ${PLATFORM_CONFIGURE_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/configure:v1.0.51}
+    container_name: platform-configure
+    depends_on:
+      platform-manager:
+        condition: service_healthy
+    environment:
+      <<: *runtime-env
+      PLATFORM_CONFIGURE_HTTP_HOST: ${PLATFORM_CONFIGURE_HTTP_HOST:-127.0.0.1}
+      PLATFORM_CONFIGURE_DB_NAME: ${PLATFORM_CONFIGURE_DB_NAME:-configure}
+      PLATFORM_CONFIGURE_DB_USER: ${PLATFORM_CONFIGURE_DB_USER:-configure}
+      PLATFORM_CONFIGURE_DB_PASSWORD: ${PLATFORM_CONFIGURE_DB_PASSWORD}
+    volumes:
+      - ./conf/configure.yaml:/app/conf/conf.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 7201"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  platform-resource:
+    <<: *common
+    image: ${PLATFORM_RESOURCE_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/resource:v1.2.4}
+    container_name: platform-resource
+    depends_on:
+      platform-manager:
+        condition: service_healthy
+    environment:
+      <<: *runtime-env
+      PLATFORM_RESOURCE_HTTP_HOST: ${PLATFORM_RESOURCE_HTTP_HOST:-127.0.0.1}
+      PLATFORM_RESOURCE_DB_NAME: ${PLATFORM_RESOURCE_DB_NAME:-resource}
+      PLATFORM_RESOURCE_DB_USER: ${PLATFORM_RESOURCE_DB_USER:-resource}
+      PLATFORM_RESOURCE_DB_PASSWORD: ${PLATFORM_RESOURCE_DB_PASSWORD}
+    volumes:
+      - ./conf/resource.yaml:/go/build/conf/conf.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 7203"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  platform-gateway:
+    <<: *common
+    image: ${PLATFORM_GATEWAY_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/gateway:v1.2.1}
+    container_name: platform-gateway
+    depends_on:
+      platform-manager:
+        condition: service_healthy
+      platform-configure:
+        condition: service_healthy
+      platform-resource:
+        condition: service_healthy
+    environment:
+      <<: *runtime-env
+      PLATFORM_GATEWAY_ADDR: ${PLATFORM_GATEWAY_ADDR:-127.0.0.1:7200}
+      PLATFORM_GATEWAY_ADMIN_AUTH_URL: ${PLATFORM_GATEWAY_ADMIN_AUTH_URL:-http://127.0.0.1:7202/manager/api/v1/authorize/token/parse}
+      PLATFORM_GATEWAY_DB_NAME: ${PLATFORM_GATEWAY_DB_NAME:-gateway}
+      PLATFORM_GATEWAY_DB_USER: ${PLATFORM_GATEWAY_DB_USER:-gateway}
+      PLATFORM_GATEWAY_DB_PASSWORD: ${PLATFORM_GATEWAY_DB_PASSWORD}
+    volumes:
+      - ./conf/gateway.yaml:/go/build/config/config.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 3 -O /dev/null http://127.0.0.1:7200/gateway/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
