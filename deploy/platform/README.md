@@ -20,7 +20,7 @@
 ## 前提
 
 - 目标机：CentOS 7 x86_64，已安装 Docker 24.x 和 Docker Compose v2。
-- MySQL 5.7+ 与 Redis 6+ 已在本机运行，默认地址分别为 `127.0.0.1:3306`、`127.0.0.1:6379`。
+- MySQL 5.7+ 与 Redis 6+ 已在本机运行，默认地址分别为 `127.0.0.1:3306`、`127.0.0.1:6379`。Redis 开启 `requirepass` 时必须设置 `PLATFORM_REDIS_PASSWORD`。
 - 目标目录：`/www/software/go-platform`，与 `/www/software/psou` 分开。
 - 当前端口段 `7200-7299`、`8200-8299` 已确认空闲。
 
@@ -94,6 +94,7 @@ openssl rand -hex 32
 
 - `PLATFORM_MYSQL_ADMIN_USER` / `PLATFORM_MYSQL_ADMIN_PASSWORD`
 - 四个 `PLATFORM_*_DB_PASSWORD`
+- `PLATFORM_REDIS_PASSWORD`（现有 Redis 有密码时必填）
 - 如 MySQL 客户端不在 PATH，设置 `PLATFORM_MYSQL_BIN=/www/server/mysql/bin/mysql`
 
 密码只使用 `A-Z a-z 0-9 . _ @ % + -`，避免 SQL/shell 转义问题。`.env` 不要提交到仓库。
