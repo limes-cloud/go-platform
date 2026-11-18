@@ -1,0 +1,33 @@
+:root{
+    --vp-sidebar-bg-color:#fff;
+}
+
+.VPSidebar{
+    border: 1px solid var(--vp-c-bg-alt);
+    font-size: 14px;
+}
+
+.VPSidebarItem{
+    .item{
+        .link{
+            padding: 0px 10px;
+        }
+    }
+}
+
+.VPSidebarItem.is-active{
+    .item{
+        .link{
+            background-color: #409EFF;
+            border-radius: 6px;
+            padding: 0px 10px;
+            .text{
+                color: #fff !important;
+                &:hover{
+                    color: #fff !important;
+                }
+            }
+        }
+    }
+}
+

@@ -1,8 +1,8 @@
 .env
 .gocache/
 assets/
-conf/
 dist/
 runtime/
+web/
 *.tar.gz
 *.sha256

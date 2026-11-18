@@ -6,6 +6,9 @@ hero:
   name: GoPlatform 
   text: 企业级快速开发脚手架
   tagline: 开箱即用的企业级微服务开发脚手架，良好的兼容单机、多实例、k8s。
+  image:
+    src: /images/go.png
+    alt: VitePress
   actions:
     - theme: brand
       text: 快速开始

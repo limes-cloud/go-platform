@@ -1,0 +1,54 @@
+{
+  "name": "PSou",
+  "appid": "__UNI__PSOU",
+  "description": "PSou 客户端基础模板",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "uniStatistics": {
+    "enable": false
+  },
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {},
+    "distribute": {
+      "android": {},
+      "ios": {},
+      "sdkConfigs": {}
+    }
+  },
+  "h5": {
+    "darkmode": true,
+    "themeLocation": "theme.json",
+    "router": {
+      "base": "/"
+    }
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true,
+    "darkmode": true,
+    "themeLocation": "theme.json"
+  },
+  "mp-alipay": {
+    "usingComponents": true
+  },
+  "mp-baidu": {
+    "usingComponents": true
+  },
+  "mp-toutiao": {
+    "usingComponents": true
+  },
+  "vueVersion": "3"
+}

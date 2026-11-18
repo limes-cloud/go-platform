@@ -1,0 +1,16 @@
+server:
+  http:
+    host: 127.0.0.1
+    port: 7401
+    webServerDir: /app/web/admin
+    injection:
+      - marker: "<!--__ADMIN_WEB_CONFIG__-->"
+        type: script
+        value:
+          apiBaseUrl: https://gw.qlime.cn
+
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout

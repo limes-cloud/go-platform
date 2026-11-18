@@ -35,8 +35,8 @@ mkdir -p "$GOCACHE"
 
 echo "==> using $("$GO_BIN" env GOVERSION) at $GO_BIN"
 
-rm -rf "$HERE/dist" "$HERE/assets" "$HERE/conf"
-mkdir -p "$HERE/dist" "$HERE/conf"
+rm -rf "$HERE/dist" "$HERE/assets"
+mkdir -p "$HERE/dist"
 
 for name in configure manager resource gateway; do
   echo "==> build ${name} (${TARGET_OS}/${TARGET_ARCH})"
@@ -46,6 +46,27 @@ for name in configure manager resource gateway; do
       "$GO_BIN" build -trimpath -ldflags="-s -w" -o "$HERE/dist/$name" .
   )
 done
+
+echo "==> build cron (${TARGET_OS}/${TARGET_ARCH})"
+(
+  cd "$ROOT/server/cron"
+  GOTOOLCHAIN=local CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" \
+    "$GO_BIN" build -trimpath -ldflags="-s -w" -o "$HERE/dist/cron" ./cmd/server
+)
+
+echo "==> build ai-agent (${TARGET_OS}/${TARGET_ARCH})"
+(
+  cd "$ROOT/server/ai-agent"
+  GOTOOLCHAIN=local CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" \
+    "$GO_BIN" build -trimpath -ldflags="-s -w" -o "$HERE/dist/ai-agent" .
+)
+
+echo "==> build web-server (${TARGET_OS}/${TARGET_ARCH})"
+(
+  cd "$HERE/web-server"
+  GOTOOLCHAIN=local CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" \
+    "$GO_BIN" build -trimpath -ldflags="-s -w" -o "$HERE/dist/web-server" .
+)
 
 mkdir -p \
   "$HERE/assets/configure" \
@@ -58,10 +79,9 @@ cp -R "$ROOT/server/manager/static" "$HERE/assets/manager/"
 cp -R "$ROOT/server/resource/static" "$HERE/assets/resource/"
 cp -R "$ROOT/server/gateway/deploy" "$HERE/assets/gateway/"
 
-install -m 0644 "$ROOT/server/configure/conf/conf.yaml" "$HERE/conf/configure.yaml"
-install -m 0644 "$ROOT/server/manager/conf/conf.yaml" "$HERE/conf/manager.yaml"
-install -m 0644 "$ROOT/server/resource/conf/conf.yaml" "$HERE/conf/resource.yaml"
-install -m 0644 "$ROOT/server/gateway/config/config.yaml" "$HERE/conf/gateway.yaml"
+for name in configure manager resource gateway cron ai-agent; do
+  [[ -f "$HERE/conf/$name.yaml" ]] || { echo "missing conf/$name.yaml" >&2; exit 1; }
+done
 
 echo "==> build complete"
 du -sh "$HERE/dist" "$HERE/assets"

@@ -43,3 +43,5 @@ bin/
 node_modules
 uni_modules
 dist
+tmp
+tools

@@ -29,7 +29,7 @@ services:
       PLATFORM_MANAGER_HTTP_HOST: ${PLATFORM_MANAGER_HTTP_HOST:-127.0.0.1}
       PLATFORM_MANAGER_PPROF_ENABLE: ${PLATFORM_MANAGER_PPROF_ENABLE:-false}
       PLATFORM_MANAGER_PPROF_SECRET: ${PLATFORM_MANAGER_PPROF_SECRET:-}
-      PLATFORM_MANAGER_DB_NAME: ${PLATFORM_MANAGER_DB_NAME:-ns_manager_v2}
+      PLATFORM_MANAGER_DB_NAME: ${PLATFORM_MANAGER_DB_NAME:-manager}
       PLATFORM_MANAGER_DB_USER: ${PLATFORM_MANAGER_DB_USER:-manager}
       PLATFORM_MANAGER_DB_PASSWORD: ${PLATFORM_MANAGER_DB_PASSWORD}
     volumes:
@@ -43,7 +43,7 @@ services:
 
   platform-configure:
     <<: *common
-    image: ${PLATFORM_CONFIGURE_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/configure:v1.0.51}
+    image: ${PLATFORM_CONFIGURE_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/configure:v1.0.52}
     container_name: platform-configure
     depends_on:
       platform-manager:
@@ -85,6 +85,56 @@ services:
       retries: 5
       start_period: 40s
 
+  platform-cron:
+    <<: *common
+    image: ${PLATFORM_CRON_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/cron:v1.0.25}
+    container_name: platform-cron
+    command: ["./cron", "-conf", "conf/config.yaml"]
+    depends_on:
+      platform-manager:
+        condition: service_healthy
+    environment:
+      <<: *runtime-env
+      TZ: Asia/Shanghai
+      PLATFORM_CRON_DB_NAME: ${PLATFORM_CRON_DB_NAME:-cron}
+      PLATFORM_CRON_DB_USER: ${PLATFORM_CRON_DB_USER:-cron}
+      PLATFORM_CRON_DB_PASSWORD: ${PLATFORM_CRON_DB_PASSWORD}
+      PSOU_SIGN_SK: ${PSOU_SIGN_SK}
+      PSOU_HTTP_URL: ${PSOU_HTTP_URL:-http://127.0.0.1:7301}
+    volumes:
+      - ./conf/cron.yaml:/go/build/conf/config.yaml:ro
+      # v1.0.25 ships without tzdata; the fixed image no longer needs this mount.
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 7204"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  platform-ai-agent:
+    <<: *common
+    image: ${PLATFORM_AI_AGENT_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/ai-agent:v0.1.0}
+    container_name: platform-ai-agent
+    depends_on:
+      platform-manager:
+        condition: service_healthy
+      platform-resource:
+        condition: service_healthy
+    environment:
+      <<: *runtime-env
+      PLATFORM_AI_AGENT_DB_NAME: ${PLATFORM_AI_AGENT_DB_NAME:-ai_agent}
+      PLATFORM_AI_AGENT_DB_USER: ${PLATFORM_AI_AGENT_DB_USER:-ai_agent}
+      PLATFORM_AI_AGENT_DB_PASSWORD: ${PLATFORM_AI_AGENT_DB_PASSWORD}
+    volumes:
+      - ./conf/ai-agent.yaml:/go/build/conf/conf.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 7206"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   platform-gateway:
     <<: *common
     image: ${PLATFORM_GATEWAY_IMAGE:-registry.cn-qingdao.aliyuncs.com/limes-cloud/gateway:v1.2.1}
@@ -95,6 +145,10 @@ services:
       platform-configure:
         condition: service_healthy
       platform-resource:
+        condition: service_healthy
+      platform-cron:
+        condition: service_healthy
+      platform-ai-agent:
         condition: service_healthy
     environment:
       <<: *runtime-env
@@ -111,3 +165,35 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+
+  platform-web:
+    <<: *common
+    image: ${PLATFORM_WEB_IMAGE:-go-platform-web:local}
+    container_name: platform-web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    volumes:
+      - ./conf/web-client.yaml:/app/conf/web.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 3 -O /dev/null http://127.0.0.1:7402/index.html"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  platform-admin-web:
+    <<: *common
+    image: ${PLATFORM_WEB_IMAGE:-go-platform-web:local}
+    container_name: platform-admin-web
+    depends_on:
+      platform-web:
+        condition: service_started
+    volumes:
+      - ./conf/web-admin.yaml:/app/conf/web.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 3 -O /dev/null http://127.0.0.1:7401/index.html"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

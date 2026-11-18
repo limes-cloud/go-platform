@@ -1,0 +1,196 @@
+page {
+  box-sizing: border-box;
+  color: #f5f5f7;
+  background-color: #05070f;
+  font-size: $font-normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+page {
+  --psou-bg: #05070f;
+  --psou-bg-soft: #080b18;
+  --psou-surface: #11141d;
+  --psou-surface-2: #1a1e2a;
+  --psou-border: rgba(255, 255, 255, 0.08);
+  --psou-border-strong: rgba(255, 255, 255, 0.14);
+  --psou-search-bg: rgba(255, 255, 255, 0.1);
+  --psou-search-border: rgba(255, 255, 255, 0.4);
+  --psou-search-kbd-bg: rgba(255, 255, 255, 0.08);
+  --psou-text: #f5f5f7;
+  --psou-text-2: #9b9ba4;
+  --psou-text-3: #686871;
+  --psou-accent: #38d6e4;
+  --psou-accent-solid: #007f8d;
+  --psou-hover: rgba(255, 255, 255, 0.045);
+  --psou-active-bg: rgba(56, 214, 228, 0.08);
+  --psou-tabbar-bg: rgba(8, 11, 24, 0.94);
+  --psou-topbar-bg: rgba(8, 11, 24, 0.9);
+  --psou-shadow: 0 18px 46px rgba(0, 0, 0, 0.34);
+  --psou-hero-overlay: rgba(5, 7, 15, 0.7);
+}
+
+.psou-tone--blue {
+  --psou-tone-horizontal: linear-gradient(112deg, #03101e, #07365c 48%, #0a6583);
+  --psou-tone-vertical: linear-gradient(0deg, #03101e, #07365c 52%, #0a6583);
+}
+
+.psou-tone--teal {
+  --psou-tone-horizontal: linear-gradient(112deg, #031013, #07383d 48%, #0a5b63);
+  --psou-tone-vertical: linear-gradient(0deg, #031013, #07383d 52%, #0a5b63);
+}
+
+.psou-tone--gold {
+  --psou-tone-horizontal: linear-gradient(112deg, #171005, #4d320e 48%, #85581a);
+  --psou-tone-vertical: linear-gradient(0deg, #171005, #4d320e 52%, #85581a);
+}
+
+.psou-tone--rose {
+  --psou-tone-horizontal: linear-gradient(112deg, #1e0710, #59152d 48%, #8a2548);
+  --psou-tone-vertical: linear-gradient(0deg, #1e0710, #59152d 52%, #8a2548);
+}
+
+.psou-tone--violet {
+  --psou-tone-horizontal: linear-gradient(112deg, #120820, #352050 48%, #55357c);
+  --psou-tone-vertical: linear-gradient(0deg, #120820, #352050 52%, #55357c);
+}
+
+.psou-tone--indigo {
+  --psou-tone-horizontal: linear-gradient(112deg, #070c1c, #192e5c 48%, #294b8b);
+  --psou-tone-vertical: linear-gradient(0deg, #070c1c, #192e5c 52%, #294b8b);
+}
+
+.psou-mobile-page {
+  width: 100%;
+  min-height: 100vh;
+  color: var(--psou-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif;
+  background: var(--psou-bg);
+}
+
+.psou-mobile-page.with-tabbar {
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+view,
+text,
+image {
+  box-sizing: border-box;
+}
+
+.u-search .u-icon__icon {
+  font-size: $font-lg !important;
+}
+
+.u-toast {
+  color: #909399 !important;
+  border: 1px solid #e9e9eb !important;
+  border-radius: 4px !important;
+  background: #f4f4f5 !important;
+  box-shadow: none !important;
+  font-weight: 400 !important;
+}
+
+.u-toast .u-icon__icon {
+  color: currentColor !important;
+}
+
+.u-toast.u-type-primary {
+  color: #409eff !important;
+  border-color: #d9ecff !important;
+  background: #ecf5ff !important;
+}
+
+.u-toast.u-type-success {
+  color: #67c23a !important;
+  border-color: #e1f3d8 !important;
+  background: #f0f9eb !important;
+}
+
+.u-toast.u-type-warning {
+  color: #e6a23c !important;
+  border-color: #faecd8 !important;
+  background: #fdf6ec !important;
+}
+
+.u-toast.u-type-error {
+  color: #f56c6c !important;
+  border-color: #fde2e2 !important;
+  background: #fef0f0 !important;
+}
+
+.u-toast.u-type-info {
+  color: #909399 !important;
+  border-color: #e9e9eb !important;
+  background: #f4f4f5 !important;
+}
+
+/* #ifdef H5 */
+.pc-hero__score,
+.m-home__score,
+.pc-detail__score,
+.m-detail__score,
+.psou-cover__score {
+  font-size: $font-xs !important;
+}
+
+html,
+body,
+uni-page,
+uni-page-wrapper,
+uni-page-body,
+uni-tabbar,
+.uni-tabbar,
+.uni-page-refresh {
+  background-color: #05070f !important;
+}
+
+uni-tabbar,
+.uni-placeholder {
+  display: none !important;
+}
+
+@media (min-width: 751px) {
+  body {
+    background: #05070f;
+  }
+
+  uni-page-body {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: #05070f;
+  }
+
+  .u-toast {
+    max-width: min(420px, calc(100vw - 48px)) !important;
+    padding: 11px 15px !important;
+    font-size: $font-normal !important;
+    line-height: 1.5 !important;
+  }
+
+  .u-toast .u-icon-wrap {
+    padding-top: 0;
+  }
+
+  .u-toast .u-toast_icon {
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 8px !important;
+  }
+
+  .u-toast .u-toast_icon .u-icon__icon {
+    font-size: $font-lg !important;
+    line-height: 16px !important;
+  }
+
+  .u-mask:has(> .u-toast) {
+    pointer-events: none;
+  }
+}
+
+/* #endif */

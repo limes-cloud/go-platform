@@ -1,0 +1,88 @@
+name: cron
+env: "${PLATFORM_ENV:PROD}"
+
+server:
+  http:
+    host: 127.0.0.1
+    port: 7204
+    timeout: 60s
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+    formatResponse: true
+    cors:
+      allowCredentials: true
+      allowOrigins: ["*"]
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      allowHeaders: ["Content-Type", "Content-Length", "Authorization", "X-App-Key"]
+      exposeHeaders: ["Content-Length", "Access-Control-Allow-Headers"]
+  grpc:
+    host: 127.0.0.1
+    port: 8204
+    timeout: 30s
+
+database:
+  - name: cron
+    enable: true
+    drive: mysql
+    autoCreate: "${PLATFORM_DB_AUTO_CREATE:false}"
+    connect:
+      username: "${PLATFORM_CRON_DB_USER:cron}"
+      password: "${PLATFORM_CRON_DB_PASSWORD:}"
+      host: "${PLATFORM_DB_HOST:127.0.0.1}"
+      port: "${PLATFORM_DB_PORT:3306}"
+      dbName: "${PLATFORM_CRON_DB_NAME:cron}"
+      option: ?charset=utf8mb4&parseTime=True&loc=Local
+    config:
+      transformError:
+        enable: true
+      maxLifetime: 2h
+      maxOpenConn: 20
+      maxIdleConn: 10
+      logLevel: 4
+      slowThreshold: 2s
+
+redis:
+  - name: cache
+    enable: true
+    host: "${PLATFORM_REDIS_ADDR:127.0.0.1:6379}"
+    password: "${PLATFORM_REDIS_PASSWORD:}"
+
+pool:
+  size: 1000
+  expiryDuration: 10s
+  preAlloc: true
+  maxBlockingTasks: 100
+  nonblocking: false
+
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout
+
+# 离线调用 psou admin/internal 接口时自动注入签名。
+signature:
+  enable: false
+  ak: psou
+  sk: "${PSOU_SIGN_SK}"
+  expire: 60s
+
+client:
+  - server: Manager
+    type: direct
+    backends:
+      - target: "${PLATFORM_MANAGER_GRPC:127.0.0.1:8202}"
+    signature:
+      enable: true
+      ak: manager
+      sk: manager
+
+business:
+  chain:
+    # 单标签 host 只用于服务名解析，路径原样保留：http://psou/psou/admin -> target + /psou/admin
+    http:
+      services:
+        psou:
+          target: "${PSOU_HTTP_URL:http://127.0.0.1:7301}"
+          sign: true

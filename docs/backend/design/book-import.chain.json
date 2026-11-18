@@ -1,0 +1,385 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "name": "开始",
+      "type": "start",
+      "request": {
+        "body": {
+          "firstCategory": {
+            "type": "string",
+            "required": true,
+            "minLen": 1,
+            "maxLen": 64
+          },
+          "secondCategory": {
+            "type": "string",
+            "required": true,
+            "minLen": 1,
+            "maxLen": 64
+          },
+          "title": {
+            "type": "string",
+            "required": true,
+            "minLen": 1,
+            "maxLen": 255
+          },
+          "meta": {
+            "type": "object",
+            "fields": {
+              "summary": {
+                "type": "string",
+                "maxLen": 512
+              },
+              "description": {
+                "type": "string",
+                "maxLen": 65535
+              },
+              "tags": {
+                "type": "array",
+                "maxLen": 30,
+                "items": {
+                  "type": "string",
+                  "maxLen": 64
+                }
+              },
+              "score": {
+                "type": "number",
+                "min": 0,
+                "max": 10
+              },
+              "cover": {
+                "type": "string",
+                "maxLen": 512
+              },
+              "weight": {
+                "type": "integer"
+              }
+            }
+          },
+          "from_quark": {
+            "type": "string",
+            "maxLen": 512
+          },
+          "from_baidu": {
+            "type": "string",
+            "maxLen": 512
+          }
+        }
+      }
+    },
+    {
+      "id": "normalize_input",
+      "name": "参数归一化",
+      "type": "script",
+      "input": {
+        "body": "${request.body}"
+      },
+      "output": "${output}",
+      "outputName": "norm",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  var b = input.body || {};\n  function clean(value, name) {\n    var text = String(value || '').trim();\n    if (/[\\u0000-\\u001F\\u007F]/.test(text)) throw new Error(name + ' contains control characters');\n    return text;\n  }\n  var title = clean(b.title, 'title');\n  var first = clean(b.firstCategory, 'firstCategory');\n  var second = clean(b.secondCategory, 'secondCategory');\n  if (!title) throw new Error('title is required');\n  if (!first) throw new Error('firstCategory is required');\n  if (!second) throw new Error('secondCategory is required');\n  return {\n    firstCategory: first,\n    secondCategory: second,\n    title: title,\n    meta: b.meta || {},\n    from_quark: clean(b.from_quark, 'from_quark'),\n    from_baidu: clean(b.from_baidu, 'from_baidu')\n  };\n}"
+    },
+    {
+      "id": "resolve_category",
+      "name": "解析一级与二级分类",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/category/resolve",
+      "input": {
+        "firstCategory": "${norm.firstCategory}",
+        "secondCategory": "${norm.secondCategory}"
+      },
+      "responseCondition": "response.code == 200",
+      "errorMsg": "${response.message}",
+      "output": "${response.data}",
+      "outputName": "category",
+      "timeout": 15,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 1,
+          "backoffRate": 2,
+          "maxDelay": 10,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "resolve_metadata",
+      "name": "补齐资源元数据",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/metadata/resolve",
+      "input": {
+        "title": "${norm.title}"
+      },
+      "responseCondition": "response.code == 200",
+      "errorMsg": "${response.message}",
+      "output": "${response.data}",
+      "outputName": "meta",
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "upsert_item",
+      "name": "创建或复用平台工作项",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/import/task/upsert",
+      "input": {
+        "categoryId": "${category.categoryId}",
+        "title": "${norm.title}",
+        "metadata": "${meta}",
+        "from_quark": "${norm.from_quark}",
+        "from_baidu": "${norm.from_baidu}"
+      },
+      "responseCondition": "response.code == 200",
+      "errorMsg": "${response.message}",
+      "output": "${response.data}",
+      "outputName": "upsert",
+      "recordBody": false,
+      "timeout": 15,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 1,
+          "backoffRate": 2,
+          "maxDelay": 10,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "quark_gate",
+      "name": "夸克路线开关",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "exists",
+          "name": "存在夸克来源",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "upsert.platforms.quark.exists",
+              "operator": "eq",
+              "right": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "baidu_gate",
+      "name": "百度路线开关",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "exists",
+          "name": "存在百度来源",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "upsert.platforms.baidu.exists",
+              "operator": "eq",
+              "right": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quark_route",
+      "name": "并行路线：夸克",
+      "type": "chain",
+      "chain": "book_import_platform",
+      "input": "${upsert.platforms.quark}",
+      "output": "${output}",
+      "outputName": "quark_route_result",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "platform": "quark",
+        "status": "failed",
+        "stage": "child_chain",
+        "errorCode": "CHILD_CHAIN_FAILED",
+        "retryable": true,
+        "message": "quark platform chain failed"
+      },
+      "timeout": 3600
+    },
+    {
+      "id": "baidu_route",
+      "name": "并行路线：百度",
+      "type": "chain",
+      "chain": "book_import_platform",
+      "input": "${upsert.platforms.baidu}",
+      "output": "${output}",
+      "outputName": "baidu_route_result",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "platform": "baidu",
+        "status": "failed",
+        "stage": "child_chain",
+        "errorCode": "CHILD_CHAIN_FAILED",
+        "retryable": true,
+        "message": "baidu platform chain failed"
+      },
+      "timeout": 3600
+    },
+    {
+      "id": "quark_skipped",
+      "name": "夸克来源不存在",
+      "type": "script",
+      "input": {},
+      "output": "${output}",
+      "outputName": "quark_skip_result",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  return {platform: 'quark', status: 'skipped', stage: 'source_missing', errorCode: 'SOURCE_NOT_PRESENT', retryable: false, message: 'quark source not present'};\n}"
+    },
+    {
+      "id": "baidu_skipped",
+      "name": "百度来源不存在",
+      "type": "script",
+      "input": {},
+      "output": "${output}",
+      "outputName": "baidu_skip_result",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  return {platform: 'baidu', status: 'skipped', stage: 'source_missing', errorCode: 'SOURCE_NOT_PRESENT', retryable: false, message: 'baidu source not present'};\n}"
+    },
+    {
+      "id": "build_result",
+      "name": "汇总两条并行路线",
+      "type": "script",
+      "input": {
+        "upsert": "${upsert}",
+        "quark_route_result": "${quark_route_result}",
+        "quark_skip_result": "${quark_skip_result}",
+        "baidu_route_result": "${baidu_route_result}",
+        "baidu_skip_result": "${baidu_skip_result}"
+      },
+      "output": "${output}",
+      "outputName": "result",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  var upsert = input.upsert || {};\n  var platforms = upsert.platforms || {};\n  var rows = [];\n  var q = input.quark_route_result || input.quark_skip_result;\n  var b = input.baidu_route_result || input.baidu_skip_result;\n  if (q) rows.push(q);\n  if (b) rows.push(b);\n  var active = 0;\n  if (platforms.quark && platforms.quark.exists === true) active++;\n  if (platforms.baidu && platforms.baidu.exists === true) active++;\n  var success = 0;\n  var resourceId = 0;\n  for (var i = 0; i < rows.length; i++) {\n    if (String(rows[i].status || '') === 'success') {\n      success++;\n      if (!resourceId && rows[i].resourceId) resourceId = Number(rows[i].resourceId);\n    }\n  }\n  if (!active) throw new Error('no active platform route');\n  if (!success) throw new Error('all platform routes failed');\n  return {\n    requestKey: String(upsert.requestKey || ''),\n    categoryId: Number(upsert.categoryId || 0),\n    title: String(upsert.title || ''),\n    status: success === active ? 'success' : 'partial',\n    resourceId: resourceId,\n    results: rows\n  };\n}"
+    },
+    {
+      "id": "end",
+      "name": "结束",
+      "type": "end",
+      "response": {
+        "body": "${result}",
+        "defaultBody": {
+          "code": 0,
+          "message": "success"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_start_norm",
+      "source": "start",
+      "target": "normalize_input"
+    },
+    {
+      "id": "e_norm_category",
+      "source": "normalize_input",
+      "target": "resolve_category"
+    },
+    {
+      "id": "e_category_meta",
+      "source": "resolve_category",
+      "target": "resolve_metadata"
+    },
+    {
+      "id": "e_meta_upsert",
+      "source": "resolve_metadata",
+      "target": "upsert_item"
+    },
+    {
+      "id": "e_upsert_qgate",
+      "source": "upsert_item",
+      "target": "quark_gate"
+    },
+    {
+      "id": "e_upsert_bgate",
+      "source": "upsert_item",
+      "target": "baidu_gate"
+    },
+    {
+      "id": "e_qgate_route",
+      "source": "quark_gate",
+      "sourcePort": "exists",
+      "target": "quark_route"
+    },
+    {
+      "id": "e_qgate_skip",
+      "source": "quark_gate",
+      "sourcePort": "default",
+      "target": "quark_skipped"
+    },
+    {
+      "id": "e_bgate_route",
+      "source": "baidu_gate",
+      "sourcePort": "exists",
+      "target": "baidu_route"
+    },
+    {
+      "id": "e_bgate_skip",
+      "source": "baidu_gate",
+      "sourcePort": "default",
+      "target": "baidu_skipped"
+    },
+    {
+      "id": "e_qroute_result",
+      "source": "quark_route",
+      "target": "build_result"
+    },
+    {
+      "id": "e_qskip_result",
+      "source": "quark_skipped",
+      "target": "build_result"
+    },
+    {
+      "id": "e_broute_result",
+      "source": "baidu_route",
+      "target": "build_result"
+    },
+    {
+      "id": "e_bskip_result",
+      "source": "baidu_skipped",
+      "target": "build_result"
+    },
+    {
+      "id": "e_result_end",
+      "source": "build_result",
+      "target": "end"
+    }
+  ]
+}

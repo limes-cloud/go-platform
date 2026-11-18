@@ -1,0 +1,16 @@
+server:
+  http:
+    host: 127.0.0.1
+    port: 7402
+    webServerDir: ./web/client
+    injection:
+      - marker: "<!--__PSOU_WEB_CONFIG__-->"
+        type: script
+        value:
+          apiBaseUrl: https://prod-gw.qlime.cn
+
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout

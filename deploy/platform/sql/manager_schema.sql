@@ -5,8 +5,21 @@ SET FOREIGN_KEY_CHECKS=0;
 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `app_group` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '分组ID',
+  `name` varchar(32) NOT NULL COMMENT '分组名称',
+  `sort` int NOT NULL DEFAULT '0' COMMENT '排序',
+  `created_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `updated_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uidx_app_group_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='应用分组表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `app` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '应用ID',
+  `group_id` bigint unsigned NOT NULL DEFAULT '1' COMMENT '应用分组ID',
   `type` char(32) NOT NULL COMMENT '应用类型',
   `logo` varchar(128) NOT NULL COMMENT '应用logo',
   `favicon` varchar(128) DEFAULT NULL COMMENT '应用图标',
@@ -24,9 +37,34 @@ CREATE TABLE `app` (
   `updated_at` bigint unsigned NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uidx_app_keyword` (`keyword`),
+  KEY `idx_app_group_id` (`group_id`),
   KEY `idx_app_created_at` (`created_at`),
   KEY `idx_app_updated_at` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='应用表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `app_domain` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `app_keyword` varchar(64) NOT NULL COMMENT '应用标识',
+  `domain` varchar(255) NOT NULL COMMENT '访问域名',
+  `is_primary` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否主域名',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_app_domain` (`domain`),
+  KEY `idx_app_domain_app` (`app_keyword`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='应用域名绑定';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `app_mini_program` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `app_keyword` varchar(64) NOT NULL COMMENT '应用标识',
+  `app_id` varchar(128) NOT NULL COMMENT '小程序 AppID',
+  `platform` varchar(32) NOT NULL DEFAULT '' COMMENT '小程序平台，如 mp-weixin',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_app_mini_program` (`platform`, `app_id`),
+  KEY `idx_app_mini_program_app` (`app_keyword`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='应用小程序绑定';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -93,6 +131,7 @@ CREATE TABLE `authorize` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `app_id` bigint unsigned NOT NULL COMMENT '应用ID',
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
+  `denied` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否禁止登录',
   `tokens` text COMMENT 'token',
   `logged_at` bigint DEFAULT NULL COMMENT '登录时间',
   `expired_at` bigint DEFAULT NULL COMMENT '过期时间',
@@ -671,5 +710,85 @@ CREATE TABLE `userinfo` (
   KEY `value_md5` (`value_md5`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户信息';
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+CREATE TABLE IF NOT EXISTS `tracker_page` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `app` varchar(64) NOT NULL COMMENT '应用标识',
+  `key` varchar(128) NOT NULL COMMENT '逻辑页面标识，不是 URL',
+  `name` varchar(128) NOT NULL COMMENT '页面展示名',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用：1启用 0停用',
+  `created_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `updated_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tracker_page_app_key` (`app`, `key`),
+  KEY `idx_tracker_page_app_status` (`app`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='点位页面';
+
+CREATE TABLE IF NOT EXISTS `tracker_point` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `app` varchar(64) NOT NULL COMMENT '应用标识',
+  `page` varchar(128) NOT NULL COMMENT '页面标识',
+  `key` varchar(128) NOT NULL COMMENT '点位标识',
+  `name` varchar(128) NOT NULL COMMENT '点位展示名',
+  `description` varchar(512) NOT NULL DEFAULT '' COMMENT '点位说明',
+  `dimensions` json DEFAULT NULL COMMENT '声明维度 JSON 数组',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用：1启用 0停用',
+  `created_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `updated_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tracker_point_app_page_key` (`app`, `page`, `key`),
+  KEY `idx_tracker_point_app_page_status` (`app`, `page`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='点位定义';
+
+CREATE TABLE IF NOT EXISTS `tracker_event` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '明细ID',
+  `created_at` bigint unsigned NOT NULL COMMENT '服务端接收时间，Unix秒',
+  `app` varchar(64) NOT NULL COMMENT '应用标识',
+  `page` varchar(128) NOT NULL COMMENT '页面标识',
+  `point_key` varchar(128) NOT NULL COMMENT '点位标识',
+  `event_type` varchar(32) NOT NULL DEFAULT 'custom' COMMENT 'pv/custom/error/performance',
+  `distinct_id` varchar(128) NOT NULL DEFAULT '' COMMENT '访客标识',
+  `user_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '登录用户ID，0为未登录',
+  `value` double DEFAULT NULL COMMENT '数值指标',
+  `props_json` json DEFAULT NULL COMMENT '清洗后的自定义属性',
+  `url` varchar(1024) NOT NULL DEFAULT '' COMMENT '事件页面地址',
+  `title` varchar(512) NOT NULL DEFAULT '' COMMENT '页面标题',
+  `referer` varchar(1024) NOT NULL DEFAULT '' COMMENT '来源地址',
+  `device` varchar(32) NOT NULL DEFAULT '' COMMENT '桌面/移动/平板',
+  `browser` varchar(64) NOT NULL DEFAULT '' COMMENT '浏览器',
+  `os` varchar(64) NOT NULL DEFAULT '' COMMENT '操作系统',
+  `ip` varchar(64) NOT NULL DEFAULT '' COMMENT '客户端IP',
+  `session_id` varchar(128) NOT NULL DEFAULT '' COMMENT '会话标识',
+  PRIMARY KEY (`id`),
+  KEY `idx_tracker_event_query` (`app`, `page`, `point_key`, `created_at`, `id`),
+  KEY `idx_tracker_event_app_time` (`app`, `created_at`, `id`),
+  KEY `idx_tracker_event_aggregate` (`created_at`, `app`, `page`, `point_key`),
+  KEY `idx_tracker_event_user` (`app`, `user_id`, `created_at`),
+  KEY `idx_tracker_event_distinct` (`app`, `distinct_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='点位事件明细';
+
+CREATE TABLE IF NOT EXISTS `tracker_metric` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `app` varchar(64) NOT NULL COMMENT '应用标识',
+  `page` varchar(128) NOT NULL COMMENT '页面标识；空串表示应用级汇总行',
+  `point_key` varchar(128) NOT NULL COMMENT '点位标识；空串表示应用/页面事件总行',
+  `granularity` varchar(8) NOT NULL COMMENT 'hour 或 day',
+  `bucket` bigint unsigned NOT NULL COMMENT '桶起始时间，Unix秒',
+  `dim_name` varchar(64) NOT NULL DEFAULT '' COMMENT '维度名，空串表示总量',
+  `dim_value` varchar(191) NOT NULL DEFAULT '' COMMENT '维度值，空串表示总量',
+  `cnt` bigint unsigned NOT NULL DEFAULT '0' COMMENT '事件量（所有事件）',
+  `uv` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'UV估算值',
+  `uv_hll` blob COMMENT 'UV HyperLogLog 序列化结果',
+  `ip_uv` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'IP 去重估算值',
+  `ip_hll` blob COMMENT 'IP HyperLogLog，只有应用总行有值',
+  `value_sum` double NOT NULL DEFAULT '0' COMMENT '数值求和',
+  `value_cnt` bigint unsigned NOT NULL DEFAULT '0' COMMENT '数值事件数',
+  `created_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `updated_at` bigint unsigned NOT NULL DEFAULT '0' COMMENT '修改时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tracker_metric` (`app`,`page`,`point_key`,`granularity`,`bucket`,`dim_name`,`dim_value`),
+  KEY `idx_tracker_metric_bucket` (`bucket`),
+  KEY `idx_tracker_metric_query` (`app`,`granularity`,`bucket`,`page`,`point_key`,`dim_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='点位预聚合指标';
 
 SET FOREIGN_KEY_CHECKS=1;

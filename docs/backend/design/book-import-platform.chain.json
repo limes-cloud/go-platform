@@ -1,0 +1,1562 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "name": "开始",
+      "type": "start",
+      "request": {
+        "body": {
+          "platform": {
+            "type": "string",
+            "required": true,
+            "enum": [
+              "baidu",
+              "quark"
+            ]
+          },
+          "taskId": {
+            "type": "integer",
+            "required": true,
+            "min": 1
+          },
+          "requestKey": {
+            "type": "string",
+            "maxLen": 128
+          },
+          "title": {
+            "type": "string",
+            "required": true,
+            "minLen": 1,
+            "maxLen": 255
+          },
+          "categoryId": {
+            "type": "integer",
+            "required": true,
+            "min": 1
+          },
+          "metadata": {
+            "type": "object",
+            "fields": {
+              "summary": {
+                "type": "string",
+                "maxLen": 512
+              },
+              "description": {
+                "type": "string",
+                "maxLen": 65535
+              },
+              "tags": {
+                "type": "array",
+                "maxLen": 3,
+                "items": {
+                  "type": "string",
+                  "maxLen": 64
+                }
+              },
+              "score": {
+                "type": "number",
+                "min": 0,
+                "max": 10
+              },
+              "cover": {
+                "type": "string",
+                "maxLen": 512
+              },
+              "weight": {
+                "type": "integer"
+              }
+            }
+          },
+          "source": {
+            "type": "object",
+            "fields": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "direct",
+                  "search"
+                ]
+              },
+              "shareUrl": {
+                "type": "string",
+                "maxLen": 512
+              },
+              "sourceUrl": {
+                "type": "string",
+                "maxLen": 512
+              },
+              "keyword": {
+                "type": "string",
+                "maxLen": 128
+              }
+            }
+          },
+          "done": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    {
+      "id": "bind_context",
+      "name": "注入任务上下文",
+      "type": "script",
+      "input": {
+        "body": "${request.body}"
+      },
+      "output": "${output}",
+      "outputName": "ctx",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  var task = input.body || {};\n  var out = {};\n  for (var k in task) out[k] = task[k];\n  if (!out.taskId) throw new Error('taskId is required');\n  if (!out.platform) throw new Error('platform is required');\n  return out;\n}"
+    },
+    {
+      "id": "claim_item",
+      "name": "领取工作项",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/import/task/claim",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "runId": "${run.id}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "claim",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "claimed": false,
+        "done": false,
+        "stage": "claim",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "claim transport error"
+      },
+      "timeout": 10,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 1,
+          "backoffRate": 2,
+          "maxDelay": 10,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "claim_gate",
+      "name": "领取结果分流",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "领取失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "claim.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        },
+        {
+          "id": "claimed",
+          "name": "已领取",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "claim.claimed",
+              "operator": "eq",
+              "right": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resolve_source",
+      "name": "冻结并校验来源分享",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/source/freeze",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "runId": "${run.id}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "src",
+      "recordBody": false,
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "source_resolve",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "source resolve transport error"
+      },
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "src_gate",
+      "name": "来源校验结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "来源失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "src.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "list_share_tree",
+      "name": "列举分享树并落清单",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/share/tree",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "runId": "${run.id}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "tree1",
+      "recordBody": false,
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "share_tree",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "share tree transport error"
+      },
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "tree1_gate",
+      "name": "分享树列举结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "列举失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "tree1.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clean_preview_share",
+      "name": "第一轮清洗预览",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/file/clean/preview",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${tree1.manifestKey}",
+        "stage": "share"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "clean1",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "clean_preview_share",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "clean preview transport error"
+      },
+      "timeout": 60,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "clean1_gate",
+      "name": "第一轮清洗结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "清洗失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "clean1.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "name": "没有有效文件",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "clean1.keptFiles",
+              "operator": "eq",
+              "right": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prepare_workspace",
+      "name": "选择账号并准备隔离目录",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/workspace/prepare",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "needUnzip": "${clean1.hasArchive}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "ws",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "prepare_workspace",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "workspace transport error"
+      },
+      "timeout": 30,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "ws_gate",
+      "name": "账号与目录结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "无可用账号",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "ws.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "transfer_workspace",
+      "name": "转存到工作目录",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/transfer",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${clean1.manifestKey}",
+        "accountId": "${ws.accountId}",
+        "dirRef": "${ws.dirRef}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "tx",
+      "recordBody": false,
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "transfer",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "transfer transport error"
+      },
+      "timeout": 300,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 3,
+          "backoffRate": 2,
+          "maxDelay": 30,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "tx_gate",
+      "name": "转存结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "转存失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "tx.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relist_workspace",
+      "name": "重列工作目录",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/workspace/list",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "transferId": "${tx.transferId}",
+        "stage": "workspace_1"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "tree2",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "workspace_list",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "workspace list transport error"
+      },
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "tree2_gate",
+      "name": "工作目录列举结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "列举失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "tree2.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "detect_archive",
+      "name": "检测压缩包",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/archive/detect",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${tree2.manifestKey}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "arch",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "archive_detect",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "archive detect transport error"
+      },
+      "timeout": 30,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 1,
+          "backoffRate": 2,
+          "maxDelay": 10,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "arch_gate",
+      "name": "是否存在压缩包",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "检测失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "arch.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        },
+        {
+          "id": "found",
+          "name": "存在压缩包",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "arch.hasArchive",
+              "operator": "eq",
+              "right": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "extract_archives",
+      "name": "递归解压最多两层",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/archive/extract",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${tree2.manifestKey}",
+        "maxDepth": 2
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "unz",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "archive_extract",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "archive extract transport error"
+      },
+      "timeout": 600,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 2,
+          "interval": 3,
+          "backoffRate": 2,
+          "maxDelay": 30,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "unz_gate",
+      "name": "解压结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "解压失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "unz.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relist_after_unzip",
+      "name": "解压后重列工作目录",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/workspace/list",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "transferId": "${tx.transferId}",
+        "stage": "workspace_2"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "tree3",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "workspace_list_after_unzip",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "post-unzip workspace list transport error"
+      },
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "tree3_gate",
+      "name": "解压后列举结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "列举失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "tree3.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "choose_final_manifest",
+      "name": "选择最终文件清单",
+      "type": "script",
+      "input": {
+        "arch": "${arch}",
+        "tree2": "${tree2}",
+        "tree3": "${tree3}"
+      },
+      "output": "${output}",
+      "outputName": "final_tree",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  var arch = input.arch || {};\n  var tree2 = input.tree2 || {};\n  var tree3 = input.tree3 || {};\n  var key = arch.hasArchive === true ? tree3.manifestKey : tree2.manifestKey;\n  if (!key) throw new Error('final manifest key is empty');\n  return {manifestKey: key};\n}"
+    },
+    {
+      "id": "clean_preview_final",
+      "name": "最终清洗预览",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/file/clean/preview",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${final_tree.manifestKey}",
+        "stage": "final"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "clean2",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "clean_preview_final",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "final clean preview transport error"
+      },
+      "timeout": 60,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "clean2_gate",
+      "name": "最终清洗结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "预览失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "clean2.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "name": "无有效文件",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "clean2.keptFiles",
+              "operator": "eq",
+              "right": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apply_clean",
+      "name": "执行改名与删除过滤项",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/file/clean/apply",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${clean2.manifestKey}",
+        "policy": "delete"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "apply",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "clean_apply",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "clean apply transport error"
+      },
+      "timeout": 300,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "apply_gate",
+      "name": "清洗执行结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "执行失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "apply.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "独立重列校验",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/file/verify",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "manifestKey": "${clean2.manifestKey}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "verify",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "verify",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "verify transport error"
+      },
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "verify_gate",
+      "name": "校验结果分流",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "校验调用失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "verify.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        },
+        {
+          "id": "invalid",
+          "name": "校验不通过",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "verify.valid",
+              "operator": "eq",
+              "right": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "create_share",
+      "name": "创建或复用站内分享",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/share/create",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "accountId": "${ws.accountId}",
+        "dirRef": "${ws.dirRef}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "share",
+      "recordBody": false,
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "share_create",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "share create transport error"
+      },
+      "timeout": 120,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "share_gate",
+      "name": "分享结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "分享失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "share.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "publish",
+      "name": "发布 resource 与 netdisk",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/resource/publish",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "runId": "${run.id}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "pub",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "publish",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "publish transport error"
+      },
+      "timeout": 60,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 2,
+          "backoffRate": 2,
+          "maxDelay": 20,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "pub_gate",
+      "name": "发布结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "发布失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "pub.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "finish_success",
+      "name": "标记工作项成功",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/import/task/finish",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "runId": "${run.id}",
+        "status": "success",
+        "resourceId": "${pub.resourceId}",
+        "netdiskId": "${pub.netdiskId}",
+        "shareUrl": "${share.shareUrl}",
+        "stats": {
+          "fileCount": "${verify.fileCount}",
+          "totalSize": "${verify.totalSize}",
+          "formatSummary": "${verify.formatSummary}",
+          "filteredCount": "${clean2.droppedFiles}",
+          "renamedCount": "${apply.renamedCount}",
+          "archiveCount": "${arch.archiveCount}"
+        }
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "finish",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "finish",
+        "code": "TRANSPORT_ERROR",
+        "retryable": true,
+        "message": "finish transport error"
+      },
+      "timeout": 10,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 1,
+          "backoffRate": 2,
+          "maxDelay": 10,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "finish_gate",
+      "name": "成功标记结果",
+      "type": "selector",
+      "branches": [
+        {
+          "id": "failed",
+          "name": "标记失败",
+          "logic": "and",
+          "conditions": [
+            {
+              "left": "finish.status",
+              "operator": "eq",
+              "right": "failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "build_failure",
+      "name": "定位失败阶段",
+      "type": "script",
+      "input": {
+        "claim": "${claim}",
+        "src": "${src}",
+        "tree1": "${tree1}",
+        "clean1": "${clean1}",
+        "ws": "${ws}",
+        "tx": "${tx}",
+        "tree2": "${tree2}",
+        "arch": "${arch}",
+        "unz": "${unz}",
+        "tree3": "${tree3}",
+        "clean2": "${clean2}",
+        "apply": "${apply}",
+        "verify": "${verify}",
+        "share": "${share}",
+        "pub": "${pub}",
+        "finish": "${finish}",
+        "clean1HasFiles": "${clean1.keptFiles}",
+        "clean2HasFiles": "${clean2.keptFiles}"
+      },
+      "output": "${output}",
+      "outputName": "failure_ctx",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  var stages = [\n    ['claim', input.claim], ['source_resolve', input.src], ['share_tree', input.tree1],\n    ['clean_preview_share', input.clean1], ['prepare_workspace', input.ws], ['transfer', input.tx],\n    ['workspace_list', input.tree2], ['archive_detect', input.arch], ['archive_extract', input.unz],\n    ['workspace_list_after_unzip', input.tree3], ['clean_preview_final', input.clean2],\n    ['clean_apply', input.apply], ['verify', input.verify], ['share_create', input.share],\n    ['publish', input.pub], ['finish', input.finish]\n  ];\n  for (var i = 0; i < stages.length; i++) {\n    var v = stages[i][1];\n    if (v && v.status === 'failed') {\n      return {stage: v.stage || stages[i][0], code: v.code || 'IMPORT_STAGE_FAILED', retryable: !!v.retryable, message: v.message || ''};\n    }\n  }\n  if (Number(input.clean1HasFiles || 0) === 0) return {stage: 'clean_preview_share', code: 'NO_VALID_FILE', retryable: false, message: '清洗后没有有效文件'};\n  if (Number(input.clean2HasFiles || 0) === 0) return {stage: 'clean_preview_final', code: 'NO_VALID_FILE', retryable: false, message: '清洗后没有有效文件'};\n  if (input.verify && input.verify.valid === false) return {stage: 'verify', code: 'VERIFY_FAILED', retryable: false, message: '文件校验未通过'};\n  return {stage: 'unknown', code: 'IMPORT_STAGE_FAILED', retryable: false, message: '未知阶段失败'};\n}"
+    },
+    {
+      "id": "mark_failure",
+      "name": "记录失败或重试",
+      "type": "api",
+      "method": "POST",
+      "url": "http://127.0.0.1:7301/psou/admin/import/task/transition",
+      "input": {
+        "taskId": "${ctx.taskId}",
+        "runId": "${run.id}",
+        "stage": "${failure_ctx.stage}",
+        "code": "${failure_ctx.code}",
+        "retryable": "${failure_ctx.retryable}",
+        "message": "${failure_ctx.message}"
+      },
+      "responseCondition": "response.code == 200",
+      "output": "${response.data}",
+      "outputName": "transition",
+      "ignoreError": true,
+      "fallbackOutput": {
+        "status": "failed",
+        "stage": "transition",
+        "code": "TRANSITION_FAILED",
+        "retryable": false,
+        "message": "transition transport error"
+      },
+      "timeout": 10,
+      "retry": [
+        {
+          "errors": [
+            "Chain.Timeout",
+            "Chain.Network",
+            "Chain.Http5xx",
+            "Chain.RateLimited"
+          ],
+          "maxAttempts": 3,
+          "interval": 1,
+          "backoffRate": 2,
+          "maxDelay": 10,
+          "jitter": "FULL"
+        }
+      ]
+    },
+    {
+      "id": "build_task_result",
+      "name": "组装单平台结果",
+      "type": "script",
+      "input": {
+        "task": "${ctx}",
+        "claim": "${claim}",
+        "finish": "${finish}",
+        "transition": "${transition}",
+        "apply": "${apply}",
+        "verify": "${verify}",
+        "clean2": "${clean2}",
+        "arch": "${arch}"
+      },
+      "output": "${output}",
+      "outputName": "flow",
+      "timeout": 10,
+      "code": "function handler(ctx, input) {\n  var task = input.task || {};\n  var claim = input.claim || {};\n  var finish = input.finish || {};\n  var transition = input.transition || {};\n  var status = 'failed';\n  var stage = transition.stage || '';\n  var code = transition.code || '';\n  var retryable = !!transition.retryable;\n  if (!transition.code && transition.status !== 'failed') {\n    if (claim.done === true) status = 'success';\n    else if (claim.claimed === true) status = 'success';\n    else if (claim.claimed === false) status = 'skipped';\n  } else {\n    status = String(transition.status || 'failed');\n  }\n  var verify = input.verify || {};\n  var apply = input.apply || {};\n  var clean2 = input.clean2 || {};\n  var arch = input.arch || {};\n  return {\n    taskId: task.taskId || 0,\n    platform: task.platform || claim.platform || '',\n    sourceUrl: (task.source || {}).shareUrl || claim.shareUrl || '',\n    status: status,\n    stage: stage || (status === 'success' ? 'finished' : ''),\n    errorCode: code || null,\n    errorMessage: transition.message || '',\n    retryable: retryable,\n    resourceId: finish.resourceId || claim.resourceId || task.resourceId || 0,\n    netdiskId: finish.netdiskId || claim.netdiskId || task.netdiskId || 0,\n    shareUrl: finish.shareUrl || claim.shareUrl || task.shareUrl || '',\n    fileCount: finish.fileCount || verify.fileCount || 0,\n    totalSize: finish.totalSize || verify.totalSize || 0,\n    formatSummary: finish.formatSummary || verify.formatSummary || '',\n    filteredCount: finish.filteredCount || clean2.droppedFiles || 0,\n    renamedCount: finish.renamedCount || apply.renamedCount || 0,\n    archiveCount: finish.archiveCount || arch.archiveCount || 0\n  };\n}"
+    },
+    {
+      "id": "end",
+      "name": "结束",
+      "type": "end",
+      "response": {
+        "body": "${flow}",
+        "defaultBody": {
+          "code": 0,
+          "message": "success"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_iter_start_bind",
+      "source": "start",
+      "target": "bind_context"
+    },
+    {
+      "id": "e_bind_claim",
+      "source": "bind_context",
+      "target": "claim_item"
+    },
+    {
+      "id": "e_claim_gate",
+      "source": "claim_item",
+      "target": "claim_gate"
+    },
+    {
+      "id": "e_claim_failed",
+      "source": "claim_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_claim_claimed",
+      "source": "claim_gate",
+      "sourcePort": "claimed",
+      "target": "resolve_source"
+    },
+    {
+      "id": "e_claim_skip",
+      "source": "claim_gate",
+      "sourcePort": "default",
+      "target": "build_task_result"
+    },
+    {
+      "id": "e_src_gate",
+      "source": "resolve_source",
+      "target": "src_gate"
+    },
+    {
+      "id": "e_src_failed",
+      "source": "src_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_src_tree",
+      "source": "src_gate",
+      "sourcePort": "default",
+      "target": "list_share_tree"
+    },
+    {
+      "id": "e_tree1_gate",
+      "source": "list_share_tree",
+      "target": "tree1_gate"
+    },
+    {
+      "id": "e_tree1_failed",
+      "source": "tree1_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_tree1_clean",
+      "source": "tree1_gate",
+      "sourcePort": "default",
+      "target": "clean_preview_share"
+    },
+    {
+      "id": "e_clean1_gate",
+      "source": "clean_preview_share",
+      "target": "clean1_gate"
+    },
+    {
+      "id": "e_clean1_failed",
+      "source": "clean1_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_clean1_empty",
+      "source": "clean1_gate",
+      "sourcePort": "empty",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_clean1_ws",
+      "source": "clean1_gate",
+      "sourcePort": "default",
+      "target": "prepare_workspace"
+    },
+    {
+      "id": "e_ws_gate",
+      "source": "prepare_workspace",
+      "target": "ws_gate"
+    },
+    {
+      "id": "e_ws_failed",
+      "source": "ws_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_ws_tx",
+      "source": "ws_gate",
+      "sourcePort": "default",
+      "target": "transfer_workspace"
+    },
+    {
+      "id": "e_tx_gate",
+      "source": "transfer_workspace",
+      "target": "tx_gate"
+    },
+    {
+      "id": "e_tx_failed",
+      "source": "tx_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_tx_tree2",
+      "source": "tx_gate",
+      "sourcePort": "default",
+      "target": "relist_workspace"
+    },
+    {
+      "id": "e_tree2_gate",
+      "source": "relist_workspace",
+      "target": "tree2_gate"
+    },
+    {
+      "id": "e_tree2_failed",
+      "source": "tree2_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_tree2_arch",
+      "source": "tree2_gate",
+      "sourcePort": "default",
+      "target": "detect_archive"
+    },
+    {
+      "id": "e_arch_gate",
+      "source": "detect_archive",
+      "target": "arch_gate"
+    },
+    {
+      "id": "e_arch_failed",
+      "source": "arch_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_arch_found",
+      "source": "arch_gate",
+      "sourcePort": "found",
+      "target": "extract_archives"
+    },
+    {
+      "id": "e_arch_none",
+      "source": "arch_gate",
+      "sourcePort": "default",
+      "target": "choose_final_manifest"
+    },
+    {
+      "id": "e_unz_gate",
+      "source": "extract_archives",
+      "target": "unz_gate"
+    },
+    {
+      "id": "e_unz_failed",
+      "source": "unz_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_unz_tree3",
+      "source": "unz_gate",
+      "sourcePort": "default",
+      "target": "relist_after_unzip"
+    },
+    {
+      "id": "e_tree3_gate",
+      "source": "relist_after_unzip",
+      "target": "tree3_gate"
+    },
+    {
+      "id": "e_tree3_failed",
+      "source": "tree3_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_tree3_clean",
+      "source": "tree3_gate",
+      "sourcePort": "default",
+      "target": "choose_final_manifest"
+    },
+    {
+      "id": "e_choose_clean",
+      "source": "choose_final_manifest",
+      "target": "clean_preview_final"
+    },
+    {
+      "id": "e_clean2_gate",
+      "source": "clean_preview_final",
+      "target": "clean2_gate"
+    },
+    {
+      "id": "e_clean2_failed",
+      "source": "clean2_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_clean2_empty",
+      "source": "clean2_gate",
+      "sourcePort": "empty",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_clean2_apply",
+      "source": "clean2_gate",
+      "sourcePort": "default",
+      "target": "apply_clean"
+    },
+    {
+      "id": "e_apply_gate",
+      "source": "apply_clean",
+      "target": "apply_gate"
+    },
+    {
+      "id": "e_apply_failed",
+      "source": "apply_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_apply_verify",
+      "source": "apply_gate",
+      "sourcePort": "default",
+      "target": "verify"
+    },
+    {
+      "id": "e_verify_gate",
+      "source": "verify",
+      "target": "verify_gate"
+    },
+    {
+      "id": "e_verify_failed",
+      "source": "verify_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_verify_invalid",
+      "source": "verify_gate",
+      "sourcePort": "invalid",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_verify_share",
+      "source": "verify_gate",
+      "sourcePort": "default",
+      "target": "create_share"
+    },
+    {
+      "id": "e_share_gate",
+      "source": "create_share",
+      "target": "share_gate"
+    },
+    {
+      "id": "e_share_failed",
+      "source": "share_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_share_pub",
+      "source": "share_gate",
+      "sourcePort": "default",
+      "target": "publish"
+    },
+    {
+      "id": "e_pub_gate",
+      "source": "publish",
+      "target": "pub_gate"
+    },
+    {
+      "id": "e_pub_failed",
+      "source": "pub_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_pub_finish",
+      "source": "pub_gate",
+      "sourcePort": "default",
+      "target": "finish_success"
+    },
+    {
+      "id": "e_finish_gate",
+      "source": "finish_success",
+      "target": "finish_gate"
+    },
+    {
+      "id": "e_finish_failed",
+      "source": "finish_gate",
+      "sourcePort": "failed",
+      "target": "build_failure"
+    },
+    {
+      "id": "e_finish_result",
+      "source": "finish_gate",
+      "sourcePort": "default",
+      "target": "build_task_result"
+    },
+    {
+      "id": "e_failure_ctx",
+      "source": "build_failure",
+      "target": "mark_failure"
+    },
+    {
+      "id": "e_transition_result",
+      "source": "mark_failure",
+      "target": "build_task_result"
+    },
+    {
+      "id": "e_result_end",
+      "source": "build_task_result",
+      "target": "end"
+    }
+  ]
+}

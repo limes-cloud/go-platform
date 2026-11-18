@@ -1,0 +1,159 @@
+test: 11
+env: "${PLATFORM_ENV:TEST}"
+server:
+  http:
+    host: "${PLATFORM_MANAGER_HTTP_HOST:127.0.0.1}"
+    port: 7202
+    formatResponse: true
+    pprof:
+      enable: "${PLATFORM_MANAGER_PPROF_ENABLE:true}"
+      query: secret
+      secret: "${PLATFORM_MANAGER_PPROF_SECRET:123}"
+    timeout: 10s
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+    cors: #跨域配置
+      allowCredentials: false
+      allowOrigins: [ "*" ]
+      allowMethods: [ "GET","POST","PUT","DELETE","OPTIONS" ]
+      allowHeaders: [ "Content-Type", "Content-Length", "Authorization", "X-App-Key" ]
+      exposeHeaders: [ "Content-Length", "Access-Control-Allow-Headers" ]
+  grpc:
+    host: 127.0.0.1
+    port: 8202
+    timeout: 10s
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout
+    - file
+  file:
+    name: ./tmp/runtime/output.log
+    maxSize: 1
+    maxBackup: 5
+    maxAge: 1
+    compress: false
+client:
+  - server: Resource
+    type: direct
+    backends:
+      - target: "${PLATFORM_RESOURCE_GRPC:127.0.0.1:8203}"
+database:
+  - enable: true #是否启用数据库
+    name: system
+    drive: mysql #数据库类型
+    autoCreate: "${PLATFORM_DB_AUTO_CREATE:true}" #是否自动创建数据库
+    connect:
+      username: "${PLATFORM_MANAGER_DB_USER:root}"
+      password: "${PLATFORM_MANAGER_DB_PASSWORD:root}"
+      host: "${PLATFORM_DB_HOST:127.0.0.1}"
+      port: "${PLATFORM_DB_PORT:3306}"
+      dbName: "${PLATFORM_MANAGER_DB_NAME:ns_manager_v2}"
+      option: ?charset=utf8mb4&parseTime=True&loc=Local
+    config:
+      transformError:
+        enable: true
+      initializer:
+        enable: false
+        path: deploy/data.sql
+      maxLifetime: 2h #最大生存时间
+      maxOpenConn: 20 #最大连接数量
+      maxIdleConn: 10 #最大空闲数量
+      logLevel: 4 #日志等级
+      slowThreshold: 2s #慢sql阈值
+request:
+  enableLog: true
+  retryCount: 1
+  retryWaitTime: 1s
+  maxRetryWaitTime: 2s
+  timeout: 10s
+signature:
+  enable: true
+  ak: manager
+  sk: manager
+  expire: 10s
+  onlyList:
+    /manager/api/menu/register:POST: true
+    /manager.api.menu.Menu/RegisterMenu: true
+    /manager/api/entity/register:POST: true
+    /manager.api.entity.Entity/RegisterEntity: true
+redis:
+  - enable: true
+    name: cache
+    host: "${PLATFORM_REDIS_ADDR:127.0.0.1:6379}"
+    password: "${PLATFORM_REDIS_PASSWORD:}"
+captcha:
+  login:
+    length: 6
+    expire: 180s
+    redis: cache
+    refresh: true
+  email:
+    length: 6
+    expire: 180s
+    redis: cache
+    refreshTime: 60s
+pool: #并非池配置
+  size: 10000 #最大协程数量
+  expiryDuration: 30s #过期时间
+  preAlloc: true #是否预分配
+  maxBlockingTasks: 1000 #最大的并发任务
+  nonblocking: true #设置为true时maxBlockingTasks将失效，不限制并发任务
+business:
+  superAdminUsernames:
+    - superadmin
+  setting:
+    title: "统一应用管理平台"
+    desc: "开放协作，拥抱未来，统一应用管理平台"
+    copyright: "Copyright © 2024-2025 withu.baidu.com . All rights reserved."
+    logo: "http://p3-armor.byteimg.com/tos-cn-i-49unhts6dw/dfdba5317c0c20ce20e64fac803d52bc.svg~tplv-49unhts6dw-image.image"
+    watermark: "GoPlatform"
+  tracker:
+    enable: true
+    bufferSize: 10000
+    batchSize: 500
+    flushIntervalMs: 1000
+    rateLimitPerMinute: 6000
+    rateLimitPerAppPerMinute: 60000
+    retentionDays: 90
+    cleanupBatchSize: 5000
+    cleanupMaxBatches: 20
+    maxPointsPerApp: 500
+    maxPointsHardLimit: 2000
+    maxDimensionsPerPoint: 5
+    dimensionTopN: 30
+    dimensionTopNMax: 50
+    startupBackfillHours: 24
+    trustedProxyCIDRs: ["127.0.0.1/32", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+  jwt:
+    whitelist:
+      /manager/api/system/setting:GET: true
+      /manager/api/authorize/oauthers:GET: true
+      /manager/api/authorize/captcha/image:GET: true
+      /manager/api/authorize/login:POST: true
+      /manager/api/authorize/register:POST: true
+      /manager/api/init:GET: true
+      /manager/api/sample/app:GET: true
+      /manager/api/tracker/collect:POST: true
+      /manager/api/seo/config:GET: true
+      /manager/seo:GET: true
+      /manager/seo:HEAD: true
+      /manager/robots.txt:GET: true
+      /manager/robots.txt:HEAD: true
+      /manager/sitemap.xml:GET: true
+      /manager/sitemap.xml:HEAD: true
+      /manager/api/fields:GET: true
+      /manager/api/authorize/token/refresh:POST: true
+      /manager/api/authorize/oauther/handler:POST: true
+      /manager/api/authorize/oauther/login:POST: true
+      /manager/api/authorize/oauther/bind:POST: true
+      /manager/api/authorize/fill/infos:GET: true
+      /manager/api/authorize/fill/infos:POST: true
+      /manager/api/authorize/oauther/report:POST: true
+      /manager/api/authorize/logout:POST: true
+      /manager/api/menu/register:POST: true
+      /manager.api.menu.Menu/RegisterMenu:GRPC: true
+      /manager/api/entity/register:POST: true
+      /manager.api.entity.Entity/RegisterEntity:GRPC: true

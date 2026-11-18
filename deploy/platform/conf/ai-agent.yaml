@@ -1,0 +1,95 @@
+name: ai-agent
+env: "${PLATFORM_ENV:PROD}"
+server:
+  http:
+    host: 127.0.0.1
+    port: 7206
+    timeout: 60s
+    timeoutSpecial:
+      POST:/ai-agent/api/generate/prompt/image: 180s
+      POST:/ai-agent/api/generate/image: 180s
+      POST:/ai-agent/api/v1/sys-chat/conversation: 120s
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+    formatResponse: true
+    cors:
+      allowCredentials: true
+      allowOrigins: ["*"]
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      allowHeaders: ["Content-Type", "Content-Length", "Authorization", "X-App-Key"]
+      exposeHeaders: ["Content-Length", "Access-Control-Allow-Headers"]
+  grpc:
+    host: 127.0.0.1
+    port: 8206
+    timeout: 10s
+
+client:
+  - server: Resource
+    type: direct
+    backends:
+      - target: 127.0.0.1:8203
+  - server: Manager
+    type: direct
+    backends:
+      - target: "${PLATFORM_MANAGER_GRPC:127.0.0.1:8202}"
+    signature:
+      enable: true
+      ak: manager
+      sk: manager
+
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout
+
+database:
+  - name: system
+    enable: true
+    drive: mysql
+    autoCreate: "${PLATFORM_DB_AUTO_CREATE:false}"
+    connect:
+      username: "${PLATFORM_AI_AGENT_DB_USER:ai_agent}"
+      password: "${PLATFORM_AI_AGENT_DB_PASSWORD:}"
+      host: "${PLATFORM_DB_HOST:127.0.0.1}"
+      port: "${PLATFORM_DB_PORT:3306}"
+      dbName: "${PLATFORM_AI_AGENT_DB_NAME:ai_agent}"
+      option: ?charset=utf8mb4&parseTime=True&loc=Local
+    config:
+      transformError:
+        enable: true
+      initializer:
+        enable: false
+        path: deploy/data.sql
+      maxLifetime: 2h
+      maxOpenConn: 20
+      maxIdleConn: 10
+      logLevel: 4
+      slowThreshold: 2s
+
+redis:
+  - name: cache
+    enable: true
+    host: "${PLATFORM_REDIS_ADDR:127.0.0.1:6379}"
+    password: "${PLATFORM_REDIS_PASSWORD:}"
+
+pool:
+  size: 10000
+  expiryDuration: 30s
+  preAlloc: true
+  maxBlockingTasks: 1000
+  nonblocking: true
+
+request:
+  enableLog: true
+  retryCount: 1
+  retryWaitTime: 1s
+  maxRetryWaitTime: 2s
+  timeout: 60s
+
+business:
+  vectors:
+    redis:
+      host: "${PLATFORM_REDIS_ADDR:127.0.0.1:6379}"
+      password: "${PLATFORM_REDIS_PASSWORD:}"

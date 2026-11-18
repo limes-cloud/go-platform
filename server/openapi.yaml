@@ -1,0 +1,1028 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Account API
+    version: 0.0.1
+paths:
+    /psou/admin/account:
+        get:
+            tags:
+                - Account
+            description: GetAccount 获取账号详情
+            operationId: Account_GetAccount
+            parameters:
+                - name: accountId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        put:
+            tags:
+                - Account
+            description: UpdateAccount 更新账号
+            operationId: Account_UpdateAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateAccountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - Account
+            description: CreateAccount 创建账号
+            operationId: Account_CreateAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateAccountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - Account
+            description: DeleteAccount 删除账号
+            operationId: Account_DeleteAccount
+            parameters:
+                - name: accountId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/file:
+        put:
+            tags:
+                - Account
+            description: RenameAccountFile 重命名账号网盘文件或目录
+            operationId: Account_RenameAccountFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RenameAccountFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RenameAccountFileReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - Account
+            description: DeleteAccountFile 删除账号网盘文件或目录
+            operationId: Account_DeleteAccountFile
+            parameters:
+                - name: accountId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: fsId
+                  in: query
+                  schema:
+                    type: string
+                - name: dirRef
+                  in: query
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteAccountFileReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/file/dir:
+        post:
+            tags:
+                - Account
+            description: CreateAccountDir 新建账号网盘目录
+            operationId: Account_CreateAccountDir
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateAccountDirRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateAccountDirReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/file/move:
+        post:
+            tags:
+                - Account
+            description: MoveAccountFile 移动账号网盘文件到指定目录
+            operationId: Account_MoveAccountFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MoveAccountFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MoveAccountFileReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/file/share:
+        post:
+            tags:
+                - Account
+            description: ShareAccountFile 为账号网盘中的单个文件或目录创建分享
+            operationId: Account_ShareAccountFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ShareAccountFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ShareAccountFileReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/file/unzip:
+        post:
+            tags:
+                - Account
+            description: UnzipAccountFile 在线解压账号网盘压缩包
+            operationId: Account_UnzipAccountFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UnzipAccountFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UnzipAccountFileReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/file/unzip/select:
+        post:
+            tags:
+                - Account
+            description: PickUnzipAccount 选择可用的 VIP 解压账号
+            operationId: Account_PickUnzipAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PickUnzipAccountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PickUnzipAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/files:
+        get:
+            tags:
+                - Account
+            description: ListAccountFile 列举账号网盘目录
+            operationId: Account_ListAccountFile
+            parameters:
+                - name: accountId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: dirRef
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListAccountFileReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/probe:
+        post:
+            tags:
+                - Account
+            description: ProbeAccount 探测账号登录态
+            operationId: Account_ProbeAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ProbeAccountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProbeAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/probe-recover:
+        post:
+            tags:
+                - Account
+            description: ProbeAndRecoverAccount 探测并恢复限流账号
+            operationId: Account_ProbeAndRecoverAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ProbeAndRecoverAccountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProbeAndRecoverAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/qr/session:
+        get:
+            tags:
+                - Account
+            description: GetAccountQRSession 查询扫码登录状态
+            operationId: Account_GetAccountQRSession
+            parameters:
+                - name: sessionId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetAccountQRSessionReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - Account
+            description: CreateAccountQRSession 创建扫码登录会话
+            operationId: Account_CreateAccountQRSession
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateAccountQRSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateAccountQRSessionReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/share/stats:
+        get:
+            tags:
+                - Account
+            description: GetAccountShareStats 获取账号创建的指定分享统计
+            operationId: Account_GetAccountShareStats
+            parameters:
+                - name: accountId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: shareUrl
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetAccountShareStatsReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/account/storage/refresh:
+        post:
+            tags:
+                - Account
+            description: RefreshAccountStorage 刷新账号容量
+            operationId: Account_RefreshAccountStorage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RefreshAccountStorageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RefreshAccountStorageReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /psou/admin/accounts:
+        get:
+            tags:
+                - Account
+            description: ListAccount 获取账号列表
+            operationId: Account_ListAccount
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: platform
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: orderBy
+                  in: query
+                  schema:
+                    type: string
+                - name: order
+                  in: query
+                  schema:
+                    type: string
+                - name: isVip
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListAccountReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        AccountConfig:
+            type: object
+            properties:
+                fixed:
+                    $ref: '#/components/schemas/AccountRouteConfig'
+                transfer:
+                    $ref: '#/components/schemas/AccountRouteConfig'
+                search:
+                    $ref: '#/components/schemas/AccountRouteConfig'
+                manual:
+                    $ref: '#/components/schemas/AccountRouteConfig'
+        AccountDailyStat:
+            type: object
+            properties:
+                date:
+                    type: string
+                count:
+                    type: integer
+                    format: int32
+                limit:
+                    type: integer
+                    format: int32
+        AccountExt:
+            type: object
+            properties:
+                lastCheckAt:
+                    type: integer
+                    format: uint32
+                limitedAt:
+                    type: integer
+                    format: uint32
+                limitOp:
+                    type: string
+                fixed:
+                    $ref: '#/components/schemas/AccountRouteExt'
+                transfer:
+                    $ref: '#/components/schemas/AccountRouteExt'
+                search:
+                    $ref: '#/components/schemas/AccountRouteExt'
+                manual:
+                    $ref: '#/components/schemas/AccountRouteExt'
+                isVip:
+                    type: boolean
+                isUnzipAccount:
+                    type: boolean
+                unzipDir:
+                    type: string
+        AccountFileItem:
+            type: object
+            properties:
+                fsId:
+                    type: string
+                name:
+                    type: string
+                path:
+                    type: string
+                isDir:
+                    type: boolean
+                size:
+                    type: number
+                    format: double
+                updatedAt:
+                    type: integer
+                    format: uint32
+        AccountItem:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                platform:
+                    type: string
+                name:
+                    type: string
+                userId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                priority:
+                    type: integer
+                    format: int32
+                errorCode:
+                    type: string
+                storageTotal:
+                    type: string
+                storageUsed:
+                    type: string
+                remark:
+                    type: string
+                ext:
+                    $ref: '#/components/schemas/AccountExt'
+                createdAt:
+                    type: integer
+                    format: uint32
+                updatedAt:
+                    type: integer
+                    format: uint32
+        AccountRouteConfig:
+            type: object
+            properties:
+                transferDir:
+                    type: string
+                dailyTransferLimit:
+                    type: integer
+                    format: int32
+                dailyShareLimit:
+                    type: integer
+                    format: int32
+        AccountRouteExt:
+            type: object
+            properties:
+                transferDir:
+                    type: string
+                dailyTransfer:
+                    $ref: '#/components/schemas/AccountDailyStat'
+                dailyShare:
+                    $ref: '#/components/schemas/AccountDailyStat'
+        CreateAccountDirReply:
+            type: object
+            properties:
+                id:
+                    type: string
+                path:
+                    type: string
+        CreateAccountDirRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                dirRef:
+                    type: string
+                name:
+                    type: string
+                path:
+                    type: string
+        CreateAccountQRSessionReply:
+            type: object
+            properties:
+                sessionId:
+                    type: string
+                image:
+                    type: string
+                expiresAt:
+                    type: integer
+                    format: uint32
+        CreateAccountQRSessionRequest:
+            type: object
+            properties:
+                platform:
+                    type: string
+        CreateAccountReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        CreateAccountRequest:
+            type: object
+            properties:
+                platform:
+                    type: string
+                name:
+                    type: string
+                userId:
+                    type: string
+                token:
+                    type: string
+                qrTicket:
+                    type: string
+                priority:
+                    type: integer
+                    format: int32
+                remark:
+                    type: string
+                config:
+                    $ref: '#/components/schemas/AccountConfig'
+        DeleteAccountFileReply:
+            type: object
+            properties: {}
+        DeleteAccountReply:
+            type: object
+            properties: {}
+        GetAccountQRSessionReply:
+            type: object
+            properties:
+                state:
+                    type: string
+                qrTicket:
+                    type: string
+                accountName:
+                    type: string
+        GetAccountReply:
+            type: object
+            properties:
+                account:
+                    $ref: '#/components/schemas/AccountItem'
+        GetAccountShareStatsReply:
+            type: object
+            properties:
+                shareId:
+                    type: string
+                shareUrl:
+                    type: string
+                viewCount:
+                    type: integer
+                    format: uint32
+                downloadCount:
+                    type: integer
+                    format: uint32
+                saveCount:
+                    type: integer
+                    format: uint32
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListAccountFileReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AccountFileItem'
+                total:
+                    type: integer
+                    format: uint32
+        ListAccountReply:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: uint32
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AccountItem'
+        MoveAccountFileInput:
+            type: object
+            properties:
+                newPath:
+                    type: string
+                fsId:
+                    type: string
+        MoveAccountFileReply:
+            type: object
+            properties:
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MovedAccountFile'
+        MoveAccountFileRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                targetPath:
+                    type: string
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MoveAccountFileInput'
+                    description: |-
+                        批量调用，同一个 targetPath 下按 newPath 改名。
+                         服务端按 500 个一批串行执行；总数超过 maxItems 时直接拒绝。
+                maxItems:
+                    type: integer
+                    description: 本次调用允许的最大文件数，0 表示使用服务端默认值（5000）。
+                    format: uint32
+        MovedAccountFile:
+            type: object
+            properties:
+                newPath:
+                    type: string
+                size:
+                    type: number
+                    format: double
+                fsId:
+                    type: string
+        PickUnzipAccountReply:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                platform:
+                    type: string
+                name:
+                    type: string
+                unzipDir:
+                    type: string
+        PickUnzipAccountRequest:
+            type: object
+            properties:
+                platform:
+                    type: string
+                excludeAccountId:
+                    type: integer
+                    format: uint32
+        ProbeAccountReply:
+            type: object
+            properties: {}
+        ProbeAccountRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+        ProbeAndRecoverAccountReply:
+            type: object
+            properties: {}
+        ProbeAndRecoverAccountRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+        RefreshAccountStorageReply:
+            type: object
+            properties: {}
+        RefreshAccountStorageRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+        RenameAccountFileInput:
+            type: object
+            properties:
+                fsId:
+                    type: string
+                dirRef:
+                    type: string
+                path:
+                    type: string
+                name:
+                    type: string
+        RenameAccountFileReply:
+            type: object
+            properties: {}
+        RenameAccountFileRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                file:
+                    $ref: '#/components/schemas/RenameAccountFileInput'
+        ShareAccountFileInput:
+            type: object
+            properties:
+                fsId:
+                    type: string
+                path:
+                    type: string
+        ShareAccountFileReply:
+            type: object
+            properties:
+                shareUrl:
+                    type: string
+                title:
+                    type: string
+                fsIds:
+                    type: array
+                    items:
+                        type: string
+                password:
+                    type: string
+                commandWord:
+                    type: string
+                paths:
+                    type: array
+                    items:
+                        type: string
+        ShareAccountFileRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ShareAccountFileInput'
+                title:
+                    type: string
+                periodDays:
+                    type: integer
+                    format: int32
+                password:
+                    type: string
+                commandWord:
+                    type: string
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        UnzipAccountFileReply:
+            type: object
+            properties:
+                taskId:
+                    type: string
+                outputPath:
+                    type: string
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UnzippedAccountFile'
+        UnzipAccountFileRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                fsId:
+                    type: string
+                dirRef:
+                    type: string
+                path:
+                    type: string
+                name:
+                    type: string
+                outputPath:
+                    type: string
+                dirEntries:
+                    type: boolean
+        UnzippedAccountFile:
+            type: object
+            properties:
+                path:
+                    type: string
+                size:
+                    type: number
+                    format: double
+                fsId:
+                    type: string
+                isDir:
+                    type: boolean
+        UpdateAccountReply:
+            type: object
+            properties: {}
+        UpdateAccountRequest:
+            type: object
+            properties:
+                accountId:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                userId:
+                    type: string
+                token:
+                    type: string
+                qrTicket:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                priority:
+                    type: integer
+                    format: int32
+                remark:
+                    type: string
+                config:
+                    $ref: '#/components/schemas/AccountConfig'
+                isUnzipAccount:
+                    type: boolean
+                unzipDir:
+                    type: string
+tags:
+    - name: Account

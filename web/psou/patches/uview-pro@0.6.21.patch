@@ -1,0 +1,292 @@
+diff --git a/components/u-cell-item/u-cell-item.vue b/components/u-cell-item/u-cell-item.vue
+index 99ba4788743993e64964fb6d36ccc0c6e57e533d..3894f3f210f3f0cfea2ab8782922b4b75fda9cab 100644
+--- a/components/u-cell-item/u-cell-item.vue
++++ b/components/u-cell-item/u-cell-item.vue
+@@ -11,7 +11,7 @@
+             },
+             customClass
+         ]"
+-        hover-stay-time="150"
++        :hover-stay-time="150"
+         :hover-class="hoverClass"
+         :style="$u.toStyle({ backgroundColor: bgColor }, customStyle)"
+     >
+diff --git a/components/u-search/u-search.vue b/components/u-search/u-search.vue
+index e9c425ed9b541cd79cc00d02cef2cb8952f1dc51..cc6cf0f982fca83dda449e21c9ec670277c6f321 100644
+--- a/components/u-search/u-search.vue
++++ b/components/u-search/u-search.vue
+@@ -9,15 +9,15 @@
+             class="u-content"
+             :style="{
+                 backgroundColor: bgColor,
+-                borderRadius: shape == 'round' ? '100rpx' : '10rpx',
++                borderRadius: shape == 'round' ? '100rpx' : '8px',
+                 border: borderStyle,
+-                height: height + 'rpx'
++                height: $u.addUnit(height)
+             }"
+         >
+             <view class="u-icon-wrap">
+                 <u-icon
+                     class="u-clear-icon"
+-                    :size="30"
++                    size="16px"
+                     :name="searchIcon"
+                     :color="searchIconColor ? searchIconColor : color"
+                 ></u-icon>
+@@ -48,7 +48,7 @@
+                 ]"
+             />
+             <view class="u-close-wrap" v-if="keyword && clearabled && focused" @tap="clear">
+-                <u-icon class="u-clear-icon" name="close-circle-fill" size="34" color="var(--u-light-color)"></u-icon>
++                <u-icon class="u-clear-icon" name="close-circle-fill" size="17px" color="var(--u-light-color)"></u-icon>
+             </view>
+         </view>
+         <view
+diff --git a/components/u-subsection/u-subsection.vue b/components/u-subsection/u-subsection.vue
+index d7f6769ea34a4fdaba1cf2fcc4004b4d2ad5d7c9..cb3f5b59f572942a621b767a7cc1dd716b82bb7c 100644
+--- a/components/u-subsection/u-subsection.vue
++++ b/components/u-subsection/u-subsection.vue
+@@ -159,7 +159,7 @@ const textStyle = computed<(index: number) => Record<string, any>>(() => {
+         // 字体加粗
+         if (index === currentIndex.value && props.bold) style.fontWeight = 'bold';
+         // 文字大小
+-        style.fontSize = props.fontSize + 'rpx';
++        style.fontSize = $u.addUnit(props.fontSize);
+         return style;
+     };
+ });
+@@ -184,7 +184,7 @@ const itemStyle = computed<(index: number) => Record<string, any>>(() => {
+  */
+ const subsectionStyle = computed<Record<string, any>>(() => {
+     const style: Record<string, any> = {};
+-    style.height = uni.upx2px(Number(props.height)) + 'px';
++    style.height = $u.addUnit(props.height);
+     if (props.mode === 'button') {
+         style.backgroundColor = props.bgColor;
+         style.padding = `${buttonPadding}px`;
+@@ -204,7 +204,7 @@ const itemBarStyle = computed<Record<string, any>>(() => {
+         style.backgroundColor = props.buttonColor;
+         style.borderRadius = `${borderRadius}px`;
+         style.bottom = `${buttonPadding}px`;
+-        style.height = uni.upx2px(Number(props.height)) - buttonPadding * 2 + 'px';
++        style.height = `calc(100% - ${buttonPadding * 2}px)`;
+         style.zIndex = 0;
+     }
+     return Object.assign({}, itemBgStyle.value, style);
+diff --git a/components/u-swiper/types.ts b/components/u-swiper/types.ts
+index 3b16ec8d8f46c4a690bc1e6a27521c6f26592e56..88104cd6a447d8afaccf1ee2d8243051f15261d9 100644
+--- a/components/u-swiper/types.ts
++++ b/components/u-swiper/types.ts
+@@ -18,6 +18,8 @@ export const SwiperProps = {
+     },
+     /** 轮播数据列表，数组对象 */
+     list: { type: Array as PropType<Array<Record<string, any>>>, default: () => [] },
++    /** 是否使用默认插槽渲染自定义轮播项 */
++    customItem: { type: Boolean, default: false },
+     /** 是否显示标题 */
+     title: { type: Boolean, default: false },
+     /** 指示器配置对象 */
+diff --git a/components/u-swiper/u-swiper.vue b/components/u-swiper/u-swiper.vue
+index ba354657df154e5792232d82ca7fd684332a2090..74710bd5c0cfb9c12f69dcb95592eff0eb03d7b4 100644
+--- a/components/u-swiper/u-swiper.vue
++++ b/components/u-swiper/u-swiper.vue
+@@ -14,29 +14,32 @@
+             :autoplay="autoplay"
+             :previous-margin="effect3d ? effect3dPreviousMargin + 'rpx' : '0'"
+             :next-margin="effect3d ? effect3dPreviousMargin + 'rpx' : '0'"
+-            :style="{ height: height + 'rpx', backgroundColor: bgColor }"
++            :style="{ height: $u.addUnit(height), backgroundColor: bgColor }"
+         >
+-            <swiper-item class="u-swiper-item" v-for="(item, index) in list" :key="index">
+-                <view
+-                    class="u-list-image-wrap"
+-                    @tap.stop.prevent="listClick(index)"
+-                    :class="[uCurrent != index ? 'u-list-scale' : '']"
+-                    :style="{
+-                        borderRadius: `${borderRadius}rpx`,
+-                        transform: effect3d && uCurrent != index ? 'scaleY(0.9)' : 'scaleY(1)',
+-                        margin: effect3d && uCurrent != index ? '0 20rpx' : 0
+-                    }"
+-                >
+-                    <image class="u-swiper-image" :src="item[name] || item" :mode="imgMode"></image>
++            <slot v-if="customItem || $slots.default" />
++            <template v-else>
++                <swiper-item class="u-swiper-item" v-for="(item, index) in list" :key="index">
+                     <view
+-                        v-if="title && item.title"
+-                        class="u-swiper-title u-line-1"
+-                        :style="[{ 'padding-bottom': titlePaddingBottom }, titleStyle]"
++                        class="u-list-image-wrap"
++                        @tap.stop.prevent="listClick(index)"
++                        :class="[uCurrent != index ? 'u-list-scale' : '']"
++                        :style="{
++                            borderRadius: `${borderRadius}rpx`,
++                            transform: effect3d && uCurrent != index ? 'scaleY(0.9)' : 'scaleY(1)',
++                            margin: effect3d && uCurrent != index ? '0 20rpx' : 0
++                        }"
+                     >
+-                        {{ item.title }}
++                        <image class="u-swiper-image" :src="item[name] || item" :mode="imgMode"></image>
++                        <view
++                            v-if="title && item.title"
++                            class="u-swiper-title u-line-1"
++                            :style="[{ 'padding-bottom': titlePaddingBottom }, titleStyle]"
++                        >
++                            {{ item.title }}
++                        </view>
+                     </view>
+-                </view>
+-            </swiper-item>
++                </swiper-item>
++            </template>
+         </swiper>
+         <view
+             class="u-swiper-indicator"
+diff --git a/components/u-tabs/u-tabs.vue b/components/u-tabs/u-tabs.vue
+index c24227e8d9874afe2e2fa1e9a7be9b6f767a0951..a4cc9d06b4194b912c7a51227d55d231f8b79520 100644
+--- a/components/u-tabs/u-tabs.vue
++++ b/components/u-tabs/u-tabs.vue
+@@ -134,18 +134,24 @@ watch(
+     { immediate: true }
+ );
+ 
++// 将带单位或纯数字的尺寸统一换算为 px，便于滑块定位
++function toPx(value: string | number) {
++    const str = String(value);
++    return str.endsWith('px') ? Number.parseFloat(str) : uni.upx2px(Number(str));
++}
++
+ // 移动bar的样式
+ const tabBarStyle = computed(() => {
+     const style: Record<string, any> = {
+-        width: props.barWidth + 'rpx',
++        width: $u.addUnit(props.barWidth),
+         transform: `translate(${scrollBarLeft.value}px, -100%)`,
+         // 滑块在页面渲染后第一次滑动时，无需动画效果
+         'transition-duration': `${barFirstTimeMove.value ? 0 : props.duration}s`,
+         'background-color': props.activeColor,
+-        height: props.barHeight + 'rpx',
++        height: $u.addUnit(props.barHeight),
+         opacity: barFirstTimeMove.value ? 0 : 1,
+         // 设置一个很大的值，它会自动取能用的最大值，不用高度的一半，是因为高度可能是单数，会有小数出现
+-        'border-radius': `${Number(props.barHeight) / 2}px`
++        'border-radius': $u.addUnit(toPx(props.barHeight) / 2)
+     };
+     Object.assign(style, props.barStyle);
+     return style;
+@@ -154,11 +160,11 @@ const tabBarStyle = computed(() => {
+ // tab的样式
+ function tabItemStyle(index: number) {
+     let style: Record<string, any> = {
+-        height: props.height + 'rpx',
+-        'line-height': props.height + 'rpx',
+-        'font-size': props.fontSize + 'rpx',
++        height: $u.addUnit(props.height),
++        'line-height': $u.addUnit(props.height),
++        'font-size': $u.addUnit(props.fontSize),
+         'transition-duration': `${props.duration}s`,
+-        padding: props.isScroll ? `0 ${props.gutter}rpx` : '',
++        padding: props.isScroll ? `0 ${$u.addUnit(props.gutter)}` : '',
+         flex: props.isScroll ? 'auto' : '1',
+         width: $u.addUnit(props.itemWidth)
+     };
+@@ -233,7 +239,7 @@ function scrollByIndex() {
+     // 当前活动item的中点点到左边的距离减去滑块宽度的一半，即可得到滑块所需的移动距离
+     const left = tabInfo.left + tabInfo.width / 2 - parentLeft.value;
+     // 计算当前活跃item到组件左边的距离
+-    scrollBarLeft.value = left - uni.upx2px(Number(props.barWidth)) / 2;
++    scrollBarLeft.value = left - toPx(props.barWidth) / 2;
+     // 第一次移动滑块的时候，barFirstTimeMove为true，放到延时中将其设置false
+     // 延时是因为scrollBarLeft作用于computed计算时，需要一个过程需，否则导致出错
+     if (barFirstTimeMove.value) {
+diff --git a/plugins/root/dist/index.mjs b/plugins/root/dist/index.mjs
+index 2d02c0ef8a5bdbfabaa56639bc940e36339ba99e..5c8f9385583b25bb9f21d4eb77dd93b681c2ef28 100644
+--- a/plugins/root/dist/index.mjs
++++ b/plugins/root/dist/index.mjs
+@@ -1,6 +1,6 @@
+ import { resolve, join } from "node:path";
+ import process from "node:process";
+-import { watch, readFileSync } from "node:fs";
++import { watch, readFileSync, statSync } from "node:fs";
+ import { normalizePath } from "vite";
+ import { registerRootApp, rebuildRootApp } from "./root.mjs";
+ import { transformPage } from "./page.mjs";
+@@ -17,7 +17,16 @@ function UniRoot(options) {
+   const appRootPath = resolve(rootPath, `${options.rootFileName}.vue`);
+   const pagesPath = resolve(rootPath, "pages.json");
+   let pagesJson = loadPagesJson(pagesPath, rootPath);
++  let pagesJsonStamp = getPagesJsonStamp();
+   let watcher = null;
++  function getPagesJsonStamp() {
++    try {
++      const stat = statSync(pagesPath);
++      return `${stat.mtimeMs}:${stat.size}`;
++    } catch {
++      return "";
++    }
++  }
+   let hasPlatformPlugin = false;
+   const normalizedAppRoot = normalizeId(appRootPath);
+   return {
+@@ -30,6 +39,10 @@ function UniRoot(options) {
+     configureServer(server) {
+       const reload = debounce(() => {
+         try {
++          const nextStamp = getPagesJsonStamp();
++          if (nextStamp === pagesJsonStamp)
++            return;
++          pagesJsonStamp = nextStamp;
+           pagesJson = loadPagesJson(pagesPath, rootPath);
+           server.ws.send({ type: "full-reload" });
+         } catch (e) {
+diff --git a/plugins/root/index.ts b/plugins/root/index.ts
+index 0edca0d3167a6be0fe4a09ce3528251b22eb1a84..d6e28f234571857b0b8a99da600e05fc5391f2fe 100644
+--- a/plugins/root/index.ts
++++ b/plugins/root/index.ts
+@@ -1,7 +1,7 @@
+ import type { Plugin } from 'vite';
+ import { resolve, join } from 'node:path';
+ import process from 'node:process';
+-import { watch, readFileSync } from 'node:fs';
++import { watch, readFileSync, statSync } from 'node:fs';
+ import { normalizePath } from 'vite';
+ import { registerRootApp, rebuildRootApp } from './root';
+ import { transformPage } from './page';
+@@ -49,11 +49,25 @@ export function UniRoot(options?: UniRootOptions): Plugin {
+     const pagesPath = resolve(rootPath, 'pages.json');
+ 
+     let pagesJson = loadPagesJson(pagesPath, rootPath);
++    let pagesJsonStamp = getPagesJsonStamp();
+     let watcher: ReturnType<typeof watch> | null = null;
+     let hasPlatformPlugin = false;
+ 
+     const normalizedAppRoot = normalizeId(appRootPath);
+ 
++    /**
++     * 读取 pages.json 的修改标记（mtime + 大小）。
++     * macOS 下 fs.watch 会在文件仅被读取（atime 变化）时也派发 change，不能据此认定为内容变更。
++     */
++    function getPagesJsonStamp() {
++        try {
++            const stat = statSync(pagesPath);
++            return `${stat.mtimeMs}:${stat.size}`;
++        } catch {
++            return '';
++        }
++    }
++
+     return {
+         name: 'vite-plugin-uni-root',
+         enforce: 'pre', // 在其他插件之前执行，确保页面模板先被包裹
+@@ -67,6 +81,10 @@ export function UniRoot(options?: UniRootOptions): Plugin {
+             // 监听 pages.json 变更，HMR 热重载页面列表
+             const reload = debounce(() => {
+                 try {
++                    const nextStamp = getPagesJsonStamp();
++                    if (nextStamp === pagesJsonStamp) return;
++
++                    pagesJsonStamp = nextStamp;
+                     pagesJson = loadPagesJson(pagesPath, rootPath);
+                     server.ws.send({ type: 'full-reload' });
+                 } catch (e) {

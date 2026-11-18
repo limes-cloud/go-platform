@@ -2,12 +2,19 @@
 -- Placeholder __JWT_SECRET__ is replaced by init-db.sh.
 SET NAMES utf8mb4;
 
+INSERT INTO `app_group` (`id`, `name`, `sort`, `created_at`, `updated_at`)
+VALUES (1, '基础设置', 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `sort` = VALUES(`sort`),
+  `updated_at` = VALUES(`updated_at`);
+
 INSERT INTO `app`
-  (`type`, `logo`, `favicon`, `keyword`, `name`, `show_name`, `private`, `loginable`,
+  (`group_id`, `type`, `logo`, `favicon`, `keyword`, `name`, `show_name`, `private`, `loginable`,
    `status`, `reason`, `description`, `comment`, `setting`, `created_at`, `updated_at`)
 VALUES
-  ('app', '', '', 'manager', '系统管理', '统一应用管理平台', 0, 1, 1, NULL, NULL, NULL,
-   '{"jwt":{"secret":"__JWT_SECRET__","expire":36000,"renewal":3600},"modules":["resource","configure","gateway","cron","ai-agent"]}',
+  (1, 'app', '', '', 'manager', '系统管理', '统一应用管理平台', 0, 1, 1, NULL, NULL, NULL,
+   '{"jwt":{"secret":"__JWT_SECRET__","expire":36000,"renewal":3600},"modules":[]}',
    UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
 ON DUPLICATE KEY UPDATE
   `type` = VALUES(`type`),
@@ -20,14 +27,14 @@ ON DUPLICATE KEY UPDATE
   `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `app`
-  (`type`, `logo`, `favicon`, `keyword`, `name`, `show_name`, `private`, `loginable`,
+  (`group_id`, `type`, `logo`, `favicon`, `keyword`, `name`, `show_name`, `private`, `loginable`,
    `status`, `reason`, `description`, `comment`, `setting`, `created_at`, `updated_at`)
 VALUES
-  ('base', '', '', 'resource', '资源管理', '资源管理', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-  ('base', '', '', 'configure', '配置中心', '配置中心', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-  ('base', '', '', 'gateway', '通用网关', '通用网关', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-  ('base', '', '', 'cron', '定时任务', '定时任务', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-  ('base', '', '', 'ai-agent', 'AI 中台', 'AI 中台', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
+  (1, 'base', '', '', 'resource', '资源管理', '资源管理', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  (1, 'base', '', '', 'configure', '配置中心', '配置中心', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  (1, 'base', '', '', 'gateway', '通用网关', '通用网关', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  (1, 'base', '', '', 'cron', '定时任务', '定时任务', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  (1, 'base', '', '', 'ai-agent', 'AI 中台', 'AI 中台', 0, 0, 1, NULL, NULL, NULL, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
 ON DUPLICATE KEY UPDATE
   `type` = VALUES(`type`),
   `name` = VALUES(`name`),

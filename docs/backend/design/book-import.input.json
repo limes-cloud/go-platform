@@ -1,0 +1,17 @@
+{
+  "firstCategory": "书籍",
+  "secondCategory": "漫画绘本",
+  "title": "父与子的编程之旅",
+  "meta": {
+    "summary": "本书是一本家长与孩子共同学习编程的大门。",
+    "description": "本书是一本家长与孩子共同学习编程的大门。\n\n作者：桑德\nISBN：9787115367174\n出版日期：2024-06-01",
+    "tags": ["科普", "计算机", "编程"],
+    "score": 9,
+    "cover": "https://img.yueduquan.com/cover/9787115367174.jpg"
+  },
+  "from_quark": "https://pan.quark.cn/s/b7dfa08be2b1?pwd=ksqm",
+  "from_baidu": "https://pan.baidu.com/s/1lc8YBjLWQF-H2zlP_dk6-g?pwd=aqkc",
+  "fileTypes": ["video"],
+  "quarkAccountId": 101,
+  "baiduAccountId": 102
+}

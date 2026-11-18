@@ -37,19 +37,20 @@ services:
     restart: always
     volumes:
       - ./resource/tmp:/go/build/tmp
-  # 用户中心
-  usercenter:
+      - ./resource/static:/go/build/static
+  # 应用中心
+  application:
     environment:
-      - APP_NAME=UserCenter
+      - APP_NAME=Application
       - CONF_HOST=${CONF_HOST}
       - CONF_TOKEN=${CONF_TOKEN}
-    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/usercenter
-    container_name: usercenter
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/application
+    container_name: application
     network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
     restart: always
     volumes:
-      - ./usercenter/tmp:/go/build/tmp
-      - ./usercenter/static:/go/build/static
+      - ./application/tmp:/go/build/tmp
+      - ./application/static:/go/build/static
   cron:
     environment:
       - APP_NAME=Cron
@@ -81,10 +82,14 @@ services:
     restart: always
     volumes:
       - ./partyaffairs/tmp:/go/build/tmp
-  # web后台
-  adminweb:
-    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/adminweb
-    container_name: adminweb
+  poverty:
+    environment:
+      - APP_NAME=Poverty
+      - CONF_HOST=${CONF_HOST}
+      - CONF_TOKEN=${CONF_TOKEN}
+    image: registry.cn-qingdao.aliyuncs.com/limes-cloud/layout:poverty
+    container_name: poverty
+    network_mode: host #服务需要访问数据库，这里设置成host可以更加方便一些
     restart: always
-    ports:
-      - 7000:80
+    volumes:
+      - ./poverty/tmp:/go/build/tmp

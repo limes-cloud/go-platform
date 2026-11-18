@@ -1,0 +1,2 @@
+patchedDependencies:
+  uview-pro@0.6.21: patches/uview-pro@0.6.21.patch

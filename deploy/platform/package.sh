@@ -10,7 +10,20 @@ ARCHIVE="$OUT_DIR/go-platform-deploy-$STAMP.tar.gz"
 mkdir -p "$OUT_DIR"
 "$HERE/build.sh"
 
-tar -czf "$ARCHIVE" \
+if [[ "${SKIP_WEB_BUILD:-0}" != "1" ]]; then
+  "$HERE/build-web.sh"
+fi
+
+for file in web/Dockerfile web/web-server web/client/index.html web/admin/index.html conf/web-client.yaml conf/web-admin.yaml; do
+  [[ -f "$HERE/$file" ]] || { echo "missing $file; run ./build.sh && ./build-web.sh" >&2; exit 1; }
+done
+
+TAR_XATTR_OPTS=()
+if tar --no-xattrs -cf /dev/null --files-from /dev/null 2>/dev/null; then
+  TAR_XATTR_OPTS+=(--no-xattrs)
+fi
+
+COPYFILE_DISABLE=1 tar "${TAR_XATTR_OPTS[@]}" -czf "$ARCHIVE" \
   --exclude='.env' \
   --exclude='.gocache' \
   --exclude='./.gocache' \

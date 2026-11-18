@@ -17,6 +17,8 @@ set +a
 : "${PLATFORM_CONFIGURE_DB_PASSWORD:?PLATFORM_CONFIGURE_DB_PASSWORD is required}"
 : "${PLATFORM_RESOURCE_DB_PASSWORD:?PLATFORM_RESOURCE_DB_PASSWORD is required}"
 : "${PLATFORM_GATEWAY_DB_PASSWORD:?PLATFORM_GATEWAY_DB_PASSWORD is required}"
+: "${PLATFORM_CRON_DB_PASSWORD:?PLATFORM_CRON_DB_PASSWORD is required}"
+: "${PLATFORM_AI_AGENT_DB_PASSWORD:?PLATFORM_AI_AGENT_DB_PASSWORD is required}"
 
 MYSQL_BIN="${PLATFORM_MYSQL_BIN:-mysql}"
 command -v "$MYSQL_BIN" >/dev/null 2>&1 || { echo "mysql client not found: $MYSQL_BIN" >&2; exit 1; }
@@ -67,6 +69,18 @@ table_count() {
     "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${db}'"
 }
 
+table_exists() {
+  local db="$1" table="$2"
+  [[ "$("${MYSQL[@]}" -N -B -e \
+    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${db}' AND table_name = '${table}'")" == "1" ]]
+}
+
+column_exists() {
+  local db="$1" table="$2" column="$3"
+  [[ "$("${MYSQL[@]}" -N -B -e \
+    "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = '${db}' AND table_name = '${table}' AND column_name = '${column}'")" != "0" ]]
+}
+
 import_schema_if_empty() {
   local db="$1" file="$2"
   [[ -f "$file" ]] || { echo "missing schema file: $file" >&2; exit 1; }
@@ -82,6 +96,8 @@ create_db_user "$PLATFORM_MANAGER_DB_NAME" "$PLATFORM_MANAGER_DB_USER" "$PLATFOR
 create_db_user "$PLATFORM_CONFIGURE_DB_NAME" "$PLATFORM_CONFIGURE_DB_USER" "$PLATFORM_CONFIGURE_DB_PASSWORD"
 create_db_user "$PLATFORM_RESOURCE_DB_NAME" "$PLATFORM_RESOURCE_DB_USER" "$PLATFORM_RESOURCE_DB_PASSWORD"
 create_db_user "$PLATFORM_GATEWAY_DB_NAME" "$PLATFORM_GATEWAY_DB_USER" "$PLATFORM_GATEWAY_DB_PASSWORD"
+create_db_user "$PLATFORM_CRON_DB_NAME" "$PLATFORM_CRON_DB_USER" "$PLATFORM_CRON_DB_PASSWORD"
+create_db_user "$PLATFORM_AI_AGENT_DB_NAME" "$PLATFORM_AI_AGENT_DB_USER" "$PLATFORM_AI_AGENT_DB_PASSWORD"
 
 import_schema_if_empty "$PLATFORM_MANAGER_DB_NAME" "sql/manager_schema.sql"
 
@@ -104,9 +120,14 @@ fi
 
 import_schema_if_empty "$PLATFORM_CONFIGURE_DB_NAME" "sql/configure_schema.sql"
 import_schema_if_empty "$PLATFORM_RESOURCE_DB_NAME" "sql/resource_schema.sql"
+import_schema_if_empty "$PLATFORM_CRON_DB_NAME" "sql/cron_schema.sql"
+import_schema_if_empty "$PLATFORM_AI_AGENT_DB_NAME" "sql/ai_agent_schema.sql"
 
 echo "==> apply gateway route seed"
-"${MYSQL[@]}" "$PLATFORM_GATEWAY_DB_NAME" < sql/gateway_route_config.sql
+"${MYSQL[@]}" "$PLATFORM_GATEWAY_DB_NAME" < sql/20261109_gateway_expression_routes.sql
+
+echo "==> apply tracker raw ingest route"
+"${MYSQL[@]}" "$PLATFORM_GATEWAY_DB_NAME" < sql/20261109_gateway_tracker_route.sql
 
 echo "database initialization complete"
 echo "PSou route migration 20261025_psou_client_route.sql was intentionally NOT applied"

@@ -1,0 +1,7 @@
+export const FONT_SIZE_XS = '12px'
+export const FONT_SIZE_SM = '13px'
+export const FONT_SIZE_NORMAL = '14px'
+export const FONT_SIZE_MD = '15px'
+export const FONT_SIZE_LG = '16px'
+export const FONT_SIZE_LGX = '18px'
+export const FONT_SIZE_LGXX = '24px'

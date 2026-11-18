@@ -1,0 +1,70 @@
+name: configure
+env: "${PLATFORM_ENV:TEST}"
+server:
+  http:
+    host: "${PLATFORM_CONFIGURE_HTTP_HOST:0.0.0.0}"
+    port: 7201
+    timeout: 10s
+    cors:
+      allowCredentials: true
+      allowOrigins: ["*"]
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      allowHeaders: ["Content-Type", "Content-Length", "Authorization", "X-App-Key"]
+      exposeHeaders: ["Content-Length", "Access-Control-Allow-Headers"]
+    formatResponse: true
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+  grpc:
+    host: 127.0.0.1
+    port: 8201
+    timeout: 10s
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout
+    - file
+  file:
+    name: ./tmp/runtime/output.log
+    maxSize: 1
+    maxBackup: 5
+    maxAge: 1
+    compress: false
+database:
+  - enable: true
+    name: system
+    drive: mysql
+    autoCreate: "${PLATFORM_DB_AUTO_CREATE:true}"
+    connect:
+      username: "${PLATFORM_CONFIGURE_DB_USER:root}"
+      password: "${PLATFORM_CONFIGURE_DB_PASSWORD:root}"
+      host: "${PLATFORM_DB_HOST:127.0.0.1}"
+      port: "${PLATFORM_DB_PORT:3306}"
+      dbName: "${PLATFORM_CONFIGURE_DB_NAME:configure}"
+      option: ?charset=utf8mb4&parseTime=True&loc=Local
+    config:
+      transformError:
+        enable: true
+      initializer:
+        enable: true
+        path: deploy/data.sql
+      maxLifetime: 2h
+      maxOpenConn: 20
+      maxIdleConn: 10
+      logLevel: 4
+      slowThreshold: 2s
+redis:
+  - enable: true
+    name: cache
+    host: "${PLATFORM_REDIS_ADDR:127.0.0.1:6379}"
+    password: "${PLATFORM_REDIS_PASSWORD:}"
+client:
+  - server: Manager
+    type: direct
+    backends:
+      - target: "${PLATFORM_MANAGER_GRPC:127.0.0.1:8202}"
+    signature:
+      enable: true
+      ak: manager
+      sk: manager

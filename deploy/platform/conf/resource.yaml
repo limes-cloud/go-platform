@@ -1,0 +1,96 @@
+name: resource
+env: "${PLATFORM_ENV:TEST}"
+server:
+  http:
+    host: "${PLATFORM_RESOURCE_HTTP_HOST:0.0.0.0}"
+    port: 7203
+    timeout: 45s
+    marshal:
+      emitUnpopulated: true
+      useProtoNames: true
+    formatResponse: true
+    cors: #跨域配置
+      allowCredentials: true
+      allowOrigins: [ "*" ]
+      allowMethods: [ "GET","POST","PUT","DELETE","OPTIONS" ]
+      allowHeaders: [ "Content-Type", "Content-Length", "Authorization", "X-App-Key" ]
+      exposeHeaders: [ "Content-Length", "Access-Control-Allow-Headers" ]
+  grpc:
+    host: 127.0.0.1
+    port: 8203
+    timeout: 45s
+log:
+  level: 0
+  caller: true
+  output:
+    - stdout
+    - file
+  file:
+    name: ./tmp/runtime/output.log
+    maxSize: 1
+    maxBackup: 5
+    maxAge: 1
+    compress: false
+database:
+  enable: true #是否启用数据库
+  name: system
+  drive: mysql #数据库类型
+  autoCreate: "${PLATFORM_DB_AUTO_CREATE:true}" #是否自动创建数据库
+  connect:
+    username: "${PLATFORM_RESOURCE_DB_USER:root}"
+    password: "${PLATFORM_RESOURCE_DB_PASSWORD:root}"
+    host: "${PLATFORM_DB_HOST:127.0.0.1}"
+    port: "${PLATFORM_DB_PORT:3306}"
+    dbName: "${PLATFORM_RESOURCE_DB_NAME:resource}"
+    option: ?charset=utf8mb4&parseTime=True&loc=Local
+  config:
+    transformError:
+      enable: true
+    initializer:
+      enable: false
+      path: deploy/data.sql
+    maxLifetime: 2h #最大生存时间
+    maxOpenConn: 20 #最大连接数量
+    maxIdleConn: 10 #最大空闲数量
+    logLevel: 4 #日志等级
+    slowThreshold: 2s #慢sql阈值
+redis:
+  - enable: true
+    name: cache
+    host: "${PLATFORM_REDIS_ADDR:127.0.0.1:6379}"
+    password: "${PLATFORM_REDIS_PASSWORD:}"
+client:
+  - server: Manager
+    type: direct
+    backends:
+      - target: "${PLATFORM_MANAGER_GRPC:127.0.0.1:8202}"
+    signature:
+      enable: true
+      ak: manager
+      sk: manager
+business:
+  # ---- 上传与分片 ----
+  upload:
+    sessionTtl: 24h        # 分片会话过期；GC 按 updated_at 扫
+    gcInterval: 5m         # GC 扫描周期
+    partUrlTtl: 1h         # 预签名分片 URL 有效期；覆盖"一个批次从下发到传完"，非整份文件
+  # ⏸ 以下导出段首版不实现：配置保留为设计占位，导出功能启动时才读取
+  # ---- 导出 ----
+  export:
+    localDir: static/export          # 设计占位；容量调度与本地清理见 .prd/草案-导出本地目录与容量调度.md
+    lease: 30m                       # 租约时长；单次导出最长耗时的 2~3 倍（P99 基准）
+    heartbeat: 10m                   # worker 心跳周期（顶 leased_at）；须 < lease，建议 lease/3
+    workerCount: 20                  # worker 池大小
+    retention: 720h                  # 请求行保留期（30 天）；须 >= export_ttl 最大值
+    cleanupInterval: 5m              # 产出物清理周期（expired_at 到期 → 删桶对象 → status=4）
+    leaseReclaimInterval: 1m         # 租约恢复周期（leased_at 超租约 → status=3）
+    taskReclaimInterval: 1h          # 任务行回收周期（status IN (2,3,4) 且无 export 引用 → DELETE）
+  # ---- 离线对象核对 ----
+  objectAudit:
+    enable: false
+    interval: 24h
+    batchSize: 500
+  # ---- app_config 缓存 ----
+  appConfigCache:
+    ttl: 1h                # 兜底 TTL
+    negativeTtl: 10s       # 空结果负缓存
