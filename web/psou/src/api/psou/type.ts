@@ -186,8 +186,8 @@ export interface GetPublicResourceReply {
   resource: ResourceDetailReply
 }
 
-export interface ResourceDownloadReply {
-  downloadUrl: string
+export interface ResourceURLReply {
+  url: string
   platform: string
 }
 

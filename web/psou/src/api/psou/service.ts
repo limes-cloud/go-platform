@@ -15,8 +15,8 @@ import {
   GetClientPublicAnnouncement,
   GetClientPublicCopyright,
   GetClientResourceDetail,
-  GetClientResourceDownload,
   GetClientResourceHome,
+  GetClientResourceURL,
   IncrementResourceClick,
   QuickSearchResources,
   TransferResource,
@@ -53,8 +53,8 @@ export async function fetchResourceDetail(resourceId: string | number): Promise<
   return reply.resource
 }
 
-export function fetchResourceDownload(resourceId: number, netdiskId: number) {
-  return GetClientResourceDownload(resourceId, netdiskId)
+export function fetchResourceURL(resourceId: number, netdiskId: number) {
+  return GetClientResourceURL(resourceId, netdiskId)
 }
 
 export async function incrementResourceClick(resourceId: number): Promise<void> {

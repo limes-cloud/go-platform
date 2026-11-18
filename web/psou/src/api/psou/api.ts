@@ -3,7 +3,7 @@ import type {
   GetPublicResourceReply,
   GetResourceHomeReply,
   ListPublicResourcesReply,
-  ResourceDownloadReply,
+  ResourceURLReply,
   SearchResourcesReply,
   SiteAnnouncement,
   SiteCopyright,
@@ -45,8 +45,8 @@ export function GetClientResourceDetail(resourceId: string | number) {
   })
 }
 
-export function GetClientResourceDownload(resourceId: number, netdiskId: number) {
-  return request.post<ResourceDownloadReply>('/psou/api/resource/download', {
+export function GetClientResourceURL(resourceId: number, netdiskId: number) {
+  return request.post<ResourceURLReply>('/psou/api/resource/url', {
     resourceId,
     netdiskId,
   })

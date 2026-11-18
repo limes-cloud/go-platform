@@ -3,7 +3,7 @@ import type { CoverTone, ResourceDetailReply, ResourcePlatform } from '@/api/pso
 import { onLoad, onPageScroll, onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { platformMap } from '@/api/psou/platform'
-import { fetchResourceDetail, fetchResourceDownload, incrementResourceClick } from '@/api/psou/service'
+import { fetchResourceDetail, fetchResourceURL, incrementResourceClick } from '@/api/psou/service'
 // #ifdef H5
 import PsouDesktopShell from '@/components/psou-desktop-shell/psou-desktop-shell.vue'
 // #endif
@@ -135,7 +135,7 @@ async function trackResourceClick() {
   }
 }
 
-async function fetchSelectedDownloadUrl(): Promise<string> {
+async function fetchSelectedResourceURL(): Promise<string> {
   const netdisk = selectedNetdisk.value
   const resourceId = Number(resource.value?.id)
   if (!netdisk || !resourceId) {
@@ -147,12 +147,12 @@ async function fetchSelectedDownloadUrl(): Promise<string> {
 
   downloadLoading.value = true
   try {
-    const reply = await fetchResourceDownload(resourceId, netdisk.id)
-    if (!reply?.downloadUrl) {
-      uni.$g.utoast.show({ title: '下载链接不存在', type: 'none' })
+    const reply = await fetchResourceURL(resourceId, netdisk.id)
+    if (!reply?.url) {
+      uni.$g.utoast.show({ title: '资源地址不存在', type: 'none' })
       return ''
     }
-    return reply.downloadUrl
+    return reply.url
   }
   catch {
     return ''
@@ -168,7 +168,7 @@ async function openResource() {
     uni.$g.utoast.show({ title: '暂无可用网盘副本', type: 'none' })
     return
   }
-  const shareUrl = await fetchSelectedDownloadUrl()
+  const shareUrl = await fetchSelectedResourceURL()
   if (!shareUrl)
     return
 
@@ -206,7 +206,7 @@ async function openQrCode() {
     uni.$g.utoast.show({ title: '暂无可用网盘副本', type: 'none' })
     return
   }
-  const shareUrl = await fetchSelectedDownloadUrl()
+  const shareUrl = await fetchSelectedResourceURL()
   if (!shareUrl)
     return
 
