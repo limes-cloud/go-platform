@@ -1,6 +1,6 @@
 # 书籍导入技术方案（9 原子能力版）
 
-> 状态：9 个原子能力已完成升级并通过 `go test ./...`、`go vet ./...`、`pnpm exec vue-tsc --noEmit`、`pnpm build`；新增 `POST /psou/admin/file/clean`、`POST /psou/admin/account/file/share`、`POST /psou/admin/account/unzip/select`，`flat/filter`、转存 `items/targetDir/createShare`（`excludeAccountIds` 仍保留为通用能力）、解压 `outputPath`、批量分享和目录 `path` 均已落地。调度链已在 `app=psou_us` 创建：`id=12`、`keyword=book_import_single`；v13 为 `chain_version.id=29`，采用“先识别压缩包 → 原分享直接转存 VIP 解压账号 → 解压过滤并物理整理 → 批量分享 → 最后按 `NewPath` 转存目标账号”的顺序。账号未配置 `unzipDir` 时统一使用 `/psou/unzip`，链工作目录为 `workDir/{runId}-{platform}/{source|output|publish}`；最终目录为 `/psou/manual/{firstCategory}/{categoryName}/{title}`，并保留 `NewPath` 的多级目录；创建资源前标签去重并只保留前 3 个。
+> 状态：9 个原子能力已完成升级并通过 `go test ./...`、`go vet ./...`、`pnpm exec vue-tsc --noEmit`、`pnpm build`；新增 `POST /psou/admin/file/clean`、`POST /psou/admin/account/file/share`、`POST /psou/admin/account/unzip/select`，`flat/filter`、转存 `items/targetDir/createShare`（`excludeAccountIds` 仍保留为通用能力）、解压 `outputPath`、批量分享和目录 `path` 均已落地。调度链已在 `app=psou_us` 创建：`id=12`、`keyword=resource_import`；v13 为 `chain_version.id=29`，采用“先识别压缩包 → 原分享直接转存 VIP 解压账号 → 解压过滤并物理整理 → 批量分享 → 最后按 `NewPath` 转存目标账号”的顺序。账号未配置 `unzipDir` 时统一使用 `/psou/unzip`，链工作目录为 `workDir/{runId}-{platform}/{source|output|publish}`；最终目录为 `/psou/manual/{firstCategory}/{categoryName}/{title}`，并保留 `NewPath` 的多级目录；创建资源前标签去重并只保留前 3 个。
 > 日期：2026-11-05
 > 目标：用 9 个原子能力完成“标题 -> 元数据 -> 来源 -> 分享路径 -> 过滤 -> 转存 -> 解压 -> 移动到目标目录 -> 分享最终目录”。
 > 原则：只升级现有接口；除独立的过滤、移动原子接口外不新增文件处理路由；不引入任务表、租约或额外状态机。
@@ -11,7 +11,7 @@
 | # | 能力 | 原接口 | 当前状态 | 本次新增字段 |
 | --- | --- | --- | --- | --- |
 | 1 | 按标题取元数据 | `GET /psou/admin/resource/metadata` | 已可用 | 无 |
-| 2 | 按标题查夸克/百度来源 | `POST /psou/internal/search/valid` | 已可用，数据在 `data.list` | 无 |
+| 2 | 按标题查网盘来源 | `POST /psou/admin/search/quick` | 已可用，`type=url` 时数据在 `data.list` | `type`、`auxiliaryKeywords`、`limitPerPlatform`、`titleMatch` |
 | 3 | 取分享链接的路径数组 | `POST /psou/admin/search/files` | 已实现 `flat=true` 扁平化和 `filter=true` 一步过滤 | 请求：`flat`、`filter`；响应复用 `list`，不新增数组字段 |
 | 4 | 过滤路径数组 | `POST /psou/admin/file/clean` | 已新增并封装 `pkg/fileclean` | `files` 输入、严格校验、`list[].newPath/size/fsId` 输出 |
 | 5 | 转存指定文件列表 | `POST /psou/admin/search/transfer` | 已支持自动选号、目标目录、可选分享和真实落地路径 | 请求：`targetDir`、`createShare`、`items`；响应：`targetDir`、`files[].newPath/fsId` |
@@ -168,19 +168,20 @@
 
 ### 3.2 能力 2：按标题查来源（复用）
 
-`POST /psou/internal/search/valid`
+`POST /psou/admin/search/quick`
 
 请求：
 
 ```json
-{"keyword":"父与子的编程之旅","limitPerPlatform":1}
+{"keyword":"父与子的编程之旅","type":"url","limitPerPlatform":1,"titleMatch":true}
 ```
 
 | 参数 | 必填 | 实际约束 |
 | --- | --- | --- |
 | `keyword` | 是 | 1～128 字符，不能传分享链接 |
+| `type` | 否 | `token`（默认）或 `url`；链上固定传 `url` 以获取原始分享地址 |
 | `limitPerPlatform` | 否 | 0～50；缺省或 0 时按 10 处理 |
-| `titleMatch` | 否 | 默认 `true`；为 `true` 时只保留标题包含 `keyword` 的候选 |
+| `titleMatch` | 否 | 默认 `false`；链上显式传 `true`，只保留标题包含 `keyword` 的候选 |
 | `auxiliaryKeywords` | 否 | 最多 10 个，每个最多 64 字符；拼入检索词，并参与同级排序 |
 
 实际响应（外层统一信封，业务数据在 `data.list`）：
@@ -209,7 +210,7 @@
 2. `title` 是检索源的原始备注，可能带副标题、版本、作者；不能当作最终书名，最终书名使用链输入或元数据结果。
 3. `shareUrl` 可能已带 `pwd`，同时 `password` 也会单独返回；后续接口直接用 `shareUrl` 即可，`password` 只在需要时补充。
 4. `source` 是检索插件来源（例如 `plugin:melost`），不是“夸克/百度”的展示名。
-5. 本接口不返回后续树接口需要的 `token`；链上后续统一使用 `shareUrl`。
+5. `type=url` 时 `token` 为空，接口返回原始 `shareUrl/password`；链上后续统一使用 `shareUrl`。`type=token` 时保持原 token 响应，不返回原始地址。
 
 每个平台内部按标题相关度稳定排序，再执行链接有效性检测和 `limitPerPlatform` 截断：
 
@@ -1282,7 +1283,7 @@ type PlatformArtifact struct {
 
 ### 9.1 接口契约
 
-- `/psou/internal/search/valid` 从 `data.list` 读取，不按顶层 `list` 读取。
+- `/psou/admin/search/quick` 在 `type=url` 时从 `data.list` 读取，不按顶层 `list` 读取；原始地址在 `shareUrl`，提取码在 `password`。
 - 分类解析使用响应 `categoryName`，输入“漫画”时不误用“漫画绘本”。
 - 文件树的 `size/totalFiles/totalSize` 按字符串解析。
 - `search/files` 接受 `flat`、`filter`；`filter=true` 时 `list[].path` 已是最终路径，不再需要额外调用 `file/clean`。

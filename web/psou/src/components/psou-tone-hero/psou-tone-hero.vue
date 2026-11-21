@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CoverTone } from '@/api/psou/type'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useInView } from '@/composables/useInView'
 import { getPlatform } from '@/library/utils/platform'
 
 defineOptions({
@@ -18,6 +19,8 @@ const props = withDefaults(defineProps<{
   height?: string
   focusX?: number
   focusY?: number
+  /** 懒加载封面：滚动进入视口附近后才请求图片，轮播非首屏可用。 */
+  lazy?: boolean
 }>(), {
   cover: '',
   tone: 'teal',
@@ -26,6 +29,7 @@ const props = withDefaults(defineProps<{
   height: '',
   focusX: 0.5,
   focusY: 0.5,
+  lazy: false,
 })
 
 const clampFocus = (value: number) => Math.min(1, Math.max(0, value))
@@ -33,6 +37,8 @@ const clampFocus = (value: number) => Math.min(1, Math.max(0, value))
 const REFERENCE_FOCUS_ASPECT = 12 / 5
 const isH5 = getPlatform().startsWith('web')
 const heroRef = ref<HTMLElement | null>(null)
+const { inView } = useInView(heroRef, { enabled: props.lazy })
+const activeCover = computed(() => (props.lazy && !inView.value) ? '' : props.cover)
 const containerAspect = ref(0)
 const imageAspect = ref(0)
 let imageLoadToken = 0
@@ -75,7 +81,7 @@ function measureContainerAspect() {
 }
 
 function loadImageAspect() {
-  if (!isH5 || typeof window === 'undefined' || typeof Image === 'undefined' || !props.cover) {
+  if (!isH5 || typeof window === 'undefined' || typeof Image === 'undefined' || !activeCover.value) {
     imageAspect.value = 0
     return
   }
@@ -95,10 +101,10 @@ function loadImageAspect() {
       imageAspect.value = 0
     }
   }
-  image.src = props.cover
+  image.src = activeCover.value
 }
 
-watch(() => props.cover, loadImageAspect, { immediate: true })
+watch([() => props.cover, inView], loadImageAspect, { immediate: true })
 
 onMounted(() => {
   if (!isH5) {
@@ -143,13 +149,13 @@ const resolvedFocus = computed(() => {
 })
 
 const coverStyle = computed(() => {
-  if (!props.cover) {
+  if (!activeCover.value) {
     return undefined
   }
   const x = resolvedFocus.value.x * 100
   const y = resolvedFocus.value.y * 100
   return {
-    backgroundImage: `url("${props.cover}")`,
+    backgroundImage: `url("${activeCover.value}")`,
     backgroundPosition: `${x}% ${y}%`,
   }
 })
@@ -163,13 +169,13 @@ const coverStyle = computed(() => {
     :style="height ? { height } : undefined"
   >
     <!-- #ifdef H5 -->
-    <view v-if="cover" class="psou-tone-hero__cover psou-tone-hero__cover--background" :style="coverStyle" />
+    <view v-if="activeCover" class="psou-tone-hero__cover psou-tone-hero__cover--background" :style="coverStyle" />
     <!-- #endif -->
     <!-- #ifndef H5 -->
-    <image v-if="cover" class="psou-tone-hero__cover" :src="cover" mode="aspectFill" />
+    <image v-if="activeCover" class="psou-tone-hero__cover" :src="activeCover" mode="aspectFill" lazy-load />
     <!-- #endif -->
-    <view v-if="!cover" class="psou-tone-hero__pattern" />
-    <text v-if="!cover && glyph" class="psou-tone-hero__glyph">
+    <view v-if="!activeCover" class="psou-tone-hero__pattern" />
+    <text v-if="!activeCover && glyph" class="psou-tone-hero__glyph">
       {{ glyph }}
     </text>
     <slot />

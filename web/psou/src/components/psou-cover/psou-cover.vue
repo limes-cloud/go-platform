@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { CoverTone } from '@/api/psou/type'
+import { computed, ref, watch } from 'vue'
+import { useInView } from '@/composables/useInView'
 
 defineOptions({
   options: {
@@ -8,13 +10,15 @@ defineOptions({
   },
 })
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   cover?: string
   tone?: CoverTone
   glyph?: string
   score?: string
   description?: string
   mask?: boolean
+  /** 默认懒加载：滚动进入视口附近后才请求封面图。 */
+  lazy?: boolean
 }>(), {
   cover: '',
   tone: 'blue',
@@ -22,14 +26,35 @@ withDefaults(defineProps<{
   score: '',
   description: '',
   mask: false,
+  lazy: true,
+})
+
+const rootRef = ref<unknown>(null)
+const imageLoaded = ref(false)
+const { inView } = useInView(rootRef, { enabled: props.lazy })
+
+const showImage = computed(() => !!props.cover && (!props.lazy || inView.value))
+// 图片未落地前保留占位字，避免出现空白块
+const showGlyph = computed(() => !props.cover || !imageLoaded.value)
+
+watch(() => props.cover, () => {
+  imageLoaded.value = false
 })
 </script>
 
 <template>
-  <view class="psou-cover" :class="`psou-cover--${tone}`">
-    <image v-if="cover" class="psou-cover__image" :src="cover" mode="aspectFill" />
+  <view ref="rootRef" class="psou-cover" :class="`psou-cover--${tone}`">
+    <image
+      v-if="showImage"
+      class="psou-cover__image"
+      :src="cover"
+      mode="aspectFill"
+      lazy-load
+      @load="imageLoaded = true"
+      @error="imageLoaded = false"
+    />
     <view class="psou-cover__shade" />
-    <text v-if="!cover" class="psou-cover__glyph">
+    <text v-if="showGlyph" class="psou-cover__glyph">
       {{ glyph }}
     </text>
     <text v-if="score" class="psou-cover__score">

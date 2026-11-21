@@ -169,7 +169,7 @@ defineExpose({ refresh })
             style="height: 100%"
             @change="handleBannerChange"
           >
-            <swiper-item v-for="banner in banners" :key="banner.resource.id">
+            <swiper-item v-for="(banner, index) in banners" :key="banner.resource.id">
               <view class="pc-hero__slide-item">
                 <view class="pc-hero__slide">
                   <PsouToneHero
@@ -178,6 +178,7 @@ defineExpose({ refresh })
                     :glyph="banner.resource.glyph"
                     :focus-x="banner.resource.bannerFocusX"
                     :focus-y="banner.resource.bannerFocusY"
+                    :lazy="index > 0"
                     variant="slide-desktop"
                   >
                     <view class="pc-hero__copy">
@@ -282,7 +283,7 @@ defineExpose({ refresh })
             style="height: 100%"
             @change="handleBannerChange"
           >
-            <swiper-item v-for="banner in banners" :key="banner.resource.id">
+            <swiper-item v-for="(banner, index) in banners" :key="banner.resource.id">
               <view class="m-home__slide-item">
                 <view class="m-home__slide">
                   <PsouToneHero
@@ -291,6 +292,7 @@ defineExpose({ refresh })
                     :glyph="banner.resource.glyph"
                     :focus-x="banner.resource.bannerFocusX"
                     :focus-y="banner.resource.bannerFocusY"
+                    :lazy="index > 0"
                     variant="slide"
                   >
                     <view class="m-home__copy">
