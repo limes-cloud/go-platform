@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-kratos/kratos/v2 v2.9.2
-	github.com/limes-cloud/kratosx v1.3.4
+	github.com/limes-cloud/kratosx v1.3.5
 )
 
 require (
@@ -107,4 +107,3 @@ require (
 	gorm.io/gorm v1.30.1 // indirect
 )
 
-replace github.com/limes-cloud/kratosx => ../../../framework/kratosx
